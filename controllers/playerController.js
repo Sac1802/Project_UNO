@@ -11,6 +11,59 @@ export async function createPlayet(req, res, next){
     }
 }
 
+export async function getPlayers(req, res, next){
+    try{
+        const getPlayers = await playerService.getPlayers();
+        return res.status(200).json(getPlayers);
+    }catch(error){
+        next(error);
+    }
+}
+
+export async function getByIdPlayer(req, res, next){
+    try{
+        const id = req.params;
+        const getPlayerById = await playerService.getByIdPlayer(id);
+        return res.status(200).json(getPlayerById);
+    }catch(error){
+        next(error);
+    }
+}
+
+export async function updateFullPlayer(req, res, next){
+    const dataUpdate = req.body;
+    const id = req.params;
+    if(validateInputPlayer(dataUpdate)) res.status(400).json({error: 'All fields must be completed'});
+    try{
+        const playerUpdated = await playerService.updateFullPlayer(dataUpdate, id)
+        return res.status(200).json(playerUpdated);
+    }catch(error){
+        next(error);
+    }
+}
+
+export async function deletePlayer(req, res, next){
+    const id = req.params;
+    try{
+        await playerService.deletePlayer(id);
+        res.status(204).send();
+    }catch(error){
+        next(error);
+    }
+}
+
+
+export async function patchPlayer(req, res, next){
+    const dataPlayerUpdate = req.body;
+    const id = req.params;
+    try{
+        const playerUpdatedPartial = await playerService.patchPlayer(dataPlayerUpdate, id);
+        return playerUpdatedPartial;
+    }catch(error){
+        next(error);
+    }
+}
+
 function validateInputPlayer(data){
     return Object.values(data).some(val => 
         val === null || val === undefined || val === '');
