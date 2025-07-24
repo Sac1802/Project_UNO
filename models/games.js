@@ -1,27 +1,27 @@
-import sequelize from "../db/db.js";
 import { DataTypes } from "sequelize";
+import sequelize from "../db/db.js";
 
-const player = sequelize.define('player', {
+const game = sequelize.define('game', {
     id: {
         type: DataTypes.INTEGER,
         allowNull: false,
         autoIncrement: true,
         primaryKey: true
     },
-    name:{
+    title:{
         type: DataTypes.STRING,
         allowNull: false
     },
-    age:  {
+    status:  {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    max_players: {
         type: DataTypes.INTEGER,
-        allowNull: false
-    },
-    email: {
-        type: DataTypes.STRING,
         allowNull: false
     }
 }, {
     timestamps: true
 });
 
-export default player;
+export default game;

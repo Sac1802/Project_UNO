@@ -57,6 +57,6 @@ export async function patchPlayer(newData, id){
         const updatedPlayer = await playerFind.update(newData);
         return updatedPlayer;
     }catch(error){
-        throw new Error(`Error deleting player: ${error.message}`);
+        throw new Error(`Error update player: ${error.message}`);
     }
 }
