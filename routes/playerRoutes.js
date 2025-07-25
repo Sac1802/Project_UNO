@@ -4,11 +4,11 @@ import * as playerController from '../controllers/playerController.js';
 
 const router = Router();
 
-router.post('/players', playerController.createPlayet);
-router.get('/players', playerController.getPlayers);
-router.get('/players/:id', playerController.getByIdPlayer);
-router.put('/players/:id', playerController.updateFullPlayer);
-router.delete('/players/:id', playerController.deletePlayer);
-router.patch('/players/:id', playerController.patchPlayer);
+router.post('/', playerController.createPlayet);
+router.get('/', playerController.getPlayers);
+router.get('/:id', playerController.getByIdPlayer);
+router.put('/:id', playerController.updateFullPlayer);
+router.delete('/:id', playerController.deletePlayer);
+router.patch('/:id', playerController.patchPlayer);
 
 export default router;

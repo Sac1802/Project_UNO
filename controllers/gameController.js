@@ -2,6 +2,8 @@ import * as gameService from '../services/gameService.js'
 import * as  createCardAuto from '../services/cardCreateAuto.js'
 
 export async function createGame(req, res, next) {
+    console.log('>>> Headers:', req.headers);
+    console.log('>>> Body raw:', req.body);
     const dataGame = req.body;
     if(validateInputGame(dataGame)) return res.status(400).json({message : 'All fields must be completed'});
     try{

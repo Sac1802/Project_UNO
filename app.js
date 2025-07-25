@@ -12,10 +12,10 @@ const port = process.env.PORT;
 
 app.use(express.json());
 
-app.use('/api', gameRouter);
-app.use('/api', playerRouter);
-app.use('/api', cardRouter);
-app.use('/api', scroreRouter);
+app.use('/api/games', gameRouter);
+app.use('/api/players', playerRouter);
+app.use('/api/cards', cardRouter);
+app.use('/api/scores', scroreRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
