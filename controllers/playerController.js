@@ -58,7 +58,7 @@ export async function patchPlayer(req, res, next){
     const id = req.params.id;
     try{
         const playerUpdatedPartial = await playerService.patchPlayer(dataPlayerUpdate, id);
-        return playerUpdatedPartial;
+        return res.status(200).json(playerUpdatedPartial);
     }catch(error){
         next(error);
     }
