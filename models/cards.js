@@ -22,7 +22,8 @@ const card = sequelize.define('card', {
         allowNull: false
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    updatedAt: false 
 });
 
 game.hasMany(card, {foreignKey: 'gameId'});

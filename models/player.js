@@ -21,7 +21,8 @@ const player = sequelize.define('player', {
         allowNull: false
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    updatedAt: false 
 });
 
 export default player;

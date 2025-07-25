@@ -23,7 +23,8 @@ const score = sequelize.define('score', {
         allowNull: false
     }
 },{
-    timestamps: true
+    timestamps: true,
+    updatedAt: false 
 });
 
 player.hasMany(score,  {foreignKey: 'playerId'});

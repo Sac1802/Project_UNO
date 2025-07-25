@@ -21,7 +21,8 @@ const game = sequelize.define('game', {
         allowNull: false
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    updatedAt: false 
 });
 
 export default game;
