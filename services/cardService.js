@@ -29,18 +29,18 @@ export async function getByIdCard(id) {
 }
 
 export async function updateAll(newData,  id) {
-    const findByIdCard = card.findByPk(id);
-    if(!findByIdCard) throw new Error(`Error can't get card with ${id}`);
+    const findCard = await  card.findByPk(id);
+    if(!findCard) throw new Error(`Error can't get card with ${id}`);
     try{
-        Object.assign(findByIdCard, newData);
-        return await findByIdCard.save();
+        Object.assign(findCard, newData);
+        return await findCard.save();
     }catch(error){
         throw new Error(`Error update card: ${error.message}`);
     }
 }
 
 export async function deleteById(id) {
-    const findByIdCard = card.findByPk(id);
+    const findByIdCard = await card.findByPk(id);
     if(!findByIdCard) throw new Error(`Error can't get card with ${id}`);
     try{
         await findByIdCard.destroy();
@@ -50,7 +50,7 @@ export async function deleteById(id) {
 }
 
 export async function patchCard(newData, id) {
-    const findByIdCard = card.findByPk(id);
+    const findByIdCard = await card.findByPk(id);
     if(!findByIdCard) throw new Error(`Error can't get card with ${id}`);
     try{
         const cardUpdated = findByIdCard.update(newData);

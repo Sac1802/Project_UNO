@@ -5,7 +5,7 @@ export async function createCard(req, res, next) {
     if(validateInputCard(dataCard)) return res.status(400).json({message : 'All fields must be completed'});
     try{
         const gameCreated = await cardService.createCard(dataCard);
-        return gameCreated;
+        return res.status(201).json(gameCreated);
     }catch(error){
         next(error);
     }
