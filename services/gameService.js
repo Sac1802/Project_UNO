@@ -50,7 +50,7 @@ export async function deleteById(id){
 
 export async function patchGame(newData, id){
     const gameFind = await game.findByPk(id);
-    if(!gameFindById) throw new Error(`The game with ${id} not exists`);
+    if(!gameFind) throw new Error(`The game with ${id} not exists`);
     try{
         const gameUpdated = await gameFind.update(newData);
         return gameUpdated;
