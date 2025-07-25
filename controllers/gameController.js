@@ -24,7 +24,7 @@ export async function getAllGames(req,  res, next){
 }
 
 export async function getById(req, res, next) {
-    const id = req. params;
+    const id = req.params.id;
     try{
         const gameFindById = await gameService.getById(id);
         return res.status(200).json(gameFindById);
@@ -35,7 +35,7 @@ export async function getById(req, res, next) {
 
 export async function updateAllGame(req, res, next){
     const dataNewGame = req.body;
-    const id = req.params;
+    const id = req.params.id;
     if(validateInputGame(dataNewGame)) return res.status(400).json({message : 'All fields must be completed'});
     try{
         const gameUpdated = await gameService.updateAllGame(dataNewGame, id);
@@ -46,7 +46,7 @@ export async function updateAllGame(req, res, next){
 }
 
 export async function deleteById(req, res, next) {
-    const id = req.params;
+    const id = req.params.id;
     try{
         await gameService.deleteById(id);
         return res.status(204).send();
@@ -58,7 +58,7 @@ export async function deleteById(req, res, next) {
 
 export async function patchGame(req, res, next){
     const newData =  req.body;
-    const id = req.params;
+    const id = req.params.id;
     try{
         const updatedGames = await gameService.patchGame(newData,  id);
         return res.status(200).json(updatedGames);

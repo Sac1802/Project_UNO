@@ -22,7 +22,7 @@ export async function getAllScore(req, res, next) {
 }
 
 export async function getById(req, res, next){
-    const id = req.params;
+    const id = req.params.id;
     try{
         const getByIdScore = await scoreService.getById(id);
         return res.status(200).json(getByIdScore);
@@ -34,7 +34,7 @@ export async function getById(req, res, next){
 export async function updateAllScore(req, res, next){
     const dataUpdated =  req.body;
     if(validateInputScore(dataUpdated)) return res.status(400).json({message : 'All fields must be completed'});
-    const id = req.params;
+    const id = req.params.id;
     try{
         const scoreUpdated = await scoreService.updateAll(dataUpdated, id);
         return res.status(200).json(scoreUpdated);
@@ -44,7 +44,7 @@ export async function updateAllScore(req, res, next){
 }
 
 export async function deleteById(req, res, next){
-    const id = req.params;
+    const id = req.params.id;
     try{
         await scoreService.deleteById(id);
         return res.status(204).send();
@@ -55,7 +55,7 @@ export async function deleteById(req, res, next){
 
 export async function patchScore(req, res, next){
     const newData = req.body;
-    const id =  req.params;
+    const id =  req.params.id;
     try{
         const newScoreUpdated = await scoreService.patchScore(newData, id);
         return res.status(200).json(newScoreUpdated);

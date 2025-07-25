@@ -21,7 +21,7 @@ export async function getAllCards(req,  res, next){
 }
 
 export async function getByIdCard(req, res, next) {
-    const id = req. params;
+    const id = req.params.id;
     try{
         const cardFindById = await cardService.getByIdCard(id);
         return res.status(200).json(cardFindById);
@@ -32,7 +32,7 @@ export async function getByIdCard(req, res, next) {
 
 export async function updateAllCard(req, res, next){
     const dataNewCard = req.body;
-    const id = req.params;
+    const id = req.params.id;
     if(validateInputCard(dataNewCard)) return res.status(400).json({message : 'All fields must be completed'});
     try{
         const cardUpdated = await cardService.updateAll(dataNewCard, id);
@@ -43,7 +43,7 @@ export async function updateAllCard(req, res, next){
 }
 
 export async function deleteById(req, res, next) {
-    const id = req.params;
+    const id = req.params.id;
     try{
         await cardService.deleteById(id);
         return res.status(204).send();
@@ -55,7 +55,7 @@ export async function deleteById(req, res, next) {
 
 export async function patchCard(req, res, next){
     const newData =  req.body;
-    const id = req.params;
+    const id = req.params.id;
     try{
         const updatedCard = await cardService.patchCard(newData,  id);
         return res.status(200).json(updatedCard);
