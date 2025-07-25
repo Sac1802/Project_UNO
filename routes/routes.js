@@ -2,6 +2,7 @@ import { Router } from "express";
 import * as playerController from '../controllers/playerController.js';
 import * as gameController from '../services/gameService.js';
 import * as scoreController from '../controllers/scoreController.js';
+import * as cardController from '../controllers/cardController.js'
 
 
 const router = Router();
@@ -26,7 +27,15 @@ router.put('/games/:id', gameController.updateAllGame);
 router.delete('/games/:id', gameController.deleteById)
 router.patch('/games/:id', gameController.patchGame);
 
-
+/**
+ * Router for  CardController
+ */
+router.post('/cards', cardController.createCard);
+router.get('/cards', cardController.getAllCards);
+router.get('/cards/:id', cardController.getByIdCard);
+router.put('/cards/:id', cardController.updateAllCard);
+router.delete('/cards/id', cardController.deleteById);
+router.patch('/cards/:id', cardController.patchCard);
 
 /**
  * Router for ScoreController

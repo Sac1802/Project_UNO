@@ -1,11 +1,14 @@
 import * as gameService from '../services/gameService.js'
+import * as  createCardAuto from '../services/cardCreateAuto.js'
 
 export async function createGame(req, res, next) {
     const dataGame = req.body;
     if(validateInputGame(dataGame)) return res.status(400).json({message : 'All fields must be completed'});
     try{
         const gameCreated = await gameService.createGame(dataGame);
-        return gameCreated;
+        const idGame = gameCreated.id;
+        await createCardAuto.saveCardsAuto(idGame);
+        return res.status(201).json(gameCreated);
     }catch(error){
         next(error);
     }

@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import router  from './routes/routes.js'
+import router from './routes/routes.js';
+import { errorHandler, notFoundHandler } from './middleware/middleware.js';
 
 dotenv.config();
 const app = express();
@@ -10,7 +11,10 @@ app.use(express.json());
 
 app.use('/api', router);
 
-app.listen(port, ()=>{
-    console.log(`The server app listen in port ${port}`);
-    console.log(`URL: http://localhost:${port}`);
-})
+app.use(notFoundHandler);
+app.use(errorHandler);
+
+app.listen(port, () => {
+  console.log(`The server app is listening on port ${port}`);
+  console.log(`URL: http://localhost:${port}`);
+});
