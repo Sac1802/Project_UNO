@@ -27,10 +27,10 @@ const score = sequelize.define('score', {
     updatedAt: false 
 });
 
-player.hasMany(score,  {foreignKey: 'playerId'});
+player.hasMany(score,  {foreignKey: 'playerId', onDelete: 'CASCADE', hooks: true});
 score.belongsTo(player, {foreignKey: 'playerId'});
 
-game.hasMany(score, {foreignKey: 'gameId'});
+game.hasMany(score, {foreignKey: 'gameId', onDelete: 'CASCADE', hooks: true});
 score.belongsTo(game, {foreignKey: 'gameId'});
 
 

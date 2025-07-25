@@ -26,7 +26,7 @@ const card = sequelize.define('card', {
     updatedAt: false 
 });
 
-game.hasMany(card, {foreignKey: 'gameId'});
+game.hasMany(card, {foreignKey: 'gameId', onDelete: 'CASCADE', hooks: true});
 card.belongsTo(game, {foreignKey: 'gameId'});
 
 export default card;
