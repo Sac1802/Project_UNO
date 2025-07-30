@@ -1,23 +1,24 @@
 import sequelize from "../db/db.js";
 import { DataTypes } from "sequelize";
+import game from "./games.js";
 
-const player = sequelize.define('player', {
+const card = sequelize.define('card', {
     id: {
         type: DataTypes.INTEGER,
         allowNull: false,
         autoIncrement: true,
         primaryKey: true
     },
-    name:{
+    color:{
         type: DataTypes.STRING,
         allowNull: false
     },
-    age:  {
+    value:  {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    gameId: {
         type: DataTypes.INTEGER,
-        allowNull: false
-    },
-    email: {
-        type: DataTypes.STRING,
         allowNull: false
     }
 }, {
@@ -25,4 +26,7 @@ const player = sequelize.define('player', {
     updatedAt: false 
 });
 
-export default player;
+game.hasMany(card, {foreignKey: 'gameId', onDelete: 'CASCADE', hooks: true});
+card.belongsTo(game, {foreignKey: 'gameId'});
+
+export default card;
