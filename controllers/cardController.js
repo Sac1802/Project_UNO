@@ -64,6 +64,17 @@ export async function patchCard(req, res, next){
     }
 }
 
+export async function getTopCard(req, res, next) {
+    const { idGame } = req.body;
+    if(!idGame) return res.status(400).json({ message: "Game ID is required" });
+    try{
+        const response = await cardService.getTopCrad(idGame);
+        return res.status(200).json(response);
+    }catch(error){
+        next(error);
+    }
+}
+
 function validateInputCard(data){
     return Object.values(data).some(val => 
         val === null || val === undefined || val === '');

@@ -4,6 +4,7 @@ import * as playerController from '../controllers/playerController.js';
 
 const router = Router();
 
+router.get('/token', playerController.getPlayerByToken);
 router.post('/', playerController.createPlayet);
 router.get('/', playerController.getPlayers);
 router.get('/:id', playerController.getByIdPlayer);

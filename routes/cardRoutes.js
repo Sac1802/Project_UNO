@@ -4,6 +4,7 @@ import * as cardController from '../controllers/cardController.js'
 
 const router = Router();
 
+router.get('/cardtop', cardController.getTopCard);
 router.post('/', cardController.createCard);
 router.get('/', cardController.getAllCards);
 router.get('/:id', cardController.getByIdCard);

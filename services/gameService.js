@@ -1,9 +1,15 @@
 import game from "../models/games.js";
+import player from "../models/player.js";
 
-export async function createGame(dataGame) {
+export async function createGame(dataGame, id_owner) {
     try{
+        dataGame.game_owner =  id_owner;
+        dataGame.currect_turn_palyer_id = id_owner;
         const createdGame = await game.create(dataGame);
-        return createdGame;
+        return {
+            message: 'Game created successfully',
+            game_id: createdGame.id
+        };
     }catch(error){
         throw new Error(`Error creating game: ${error.message}`);
     }
@@ -56,5 +62,75 @@ export async function patchGame(newData, id){
         return gameUpdated;
     }catch(error){
         throw new Error(`Error update game: ${error.message}`);
+    }
+}
+
+export async function startGame(idGame, id_player){
+    const gameFind = await game.findByPk(idGame);
+    if(!gameFind) throw new Error(`The game with ${id} not exists`);
+    try{
+        if(gameFind.game_owner === id_player){
+            await gameFind.update({status: 'in_progress'});
+            return {message: "Game started successfully"};
+        }else{
+            return {message: 'Only the owner of the game can start the game'};
+        }
+    }catch(error){
+        return {message: 'An error occurred while changing the status of game ',error: error.message};
+    }
+}
+
+export async function endGame(idGame, id_player){
+    const gameFind = await game.findByPk(idGame);
+    if(!gameFind) throw new Error(`The game with ${id} not exists`);
+    try{
+        if(gameFind.game_owner === id_player){
+            await gameFind.update({status: 'finalized'});
+            return {message: "Game ended successfully"};
+        }else{
+            return {message: 'Only the owner of the game can start the game'};
+        }
+    }catch(error){
+        return {message: 'An error occurred while changing the status of game',error: error.message};
+    }
+}
+export async function getStatusGame(idGame) {
+    const gameFind = await game.findByPk(idGame);
+    if(!gameFind) throw new Error(`The game with ${id} not exists`);
+    try{
+        return {
+            game_id: idGame,
+            state: gameFind.status
+        }
+    }catch(error){
+        return {message: 'An error occurred while getting the status of game ',error: error.message}
+    }
+}
+
+export async function getCurrentPlayer(idGame) {
+    try {
+        const gameData = await game.findByPk(idGame, {
+            include: {
+                model: player,
+                as: 'currentPlayer',
+                attributes: ['username'],
+                required: false
+            }
+        });
+
+        if (!gameData) {
+            return { message: 'Game not found' };
+        }
+
+        console.log(gameData.currentPlayer.username );
+        return {
+            game_id: idGame,
+            current_player: gameData.currentPlayer?.username || 'Unknown'
+        };
+    } catch (error) {
+        return {
+            message: 'An error occurred while retrieving the current player',
+            error: error.message
+        };
     }
 }

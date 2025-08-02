@@ -64,6 +64,17 @@ export async function patchScore(req, res, next){
     }
 }
 
+export async function getScoreAllPlayer(req, res, next){
+    const { idGame } = req.body;
+    if (!idGame) return res.status(400).json({ message: "Game ID is required" });
+    try{
+        const response = await scoreService.scoreAllPlayers(idGame);
+        return res.status(200).json(response);
+    }catch(error){
+        next(error);
+    }
+}
+
 function validateInputScore(data){
     return Object.values(data).some(val => 
         val  === null || val === undefined || val  === '');

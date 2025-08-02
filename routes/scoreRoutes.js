@@ -4,6 +4,7 @@ import * as scoreController from '../controllers/scoreController.js';
 
 const router = Router();
 
+router.get('/score', scoreController.getScoreAllPlayer);
 router.post('/', scoreController.saveScore);
 router.get('/', scoreController.getAllScore);
 router.get('/:id', scoreController.getById);
