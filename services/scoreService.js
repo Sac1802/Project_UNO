@@ -1,3 +1,4 @@
+import player from "../models/player.js";
 import score from "../models/score.js";
 
 export async function saveScore(scoreData) {
@@ -57,5 +58,32 @@ export async function patchScore(newData, id){
         return newScore;
     }catch(error){
         throw new Error(`Error upadte score: ${error.message}`);
+    }
+}
+
+export async function scoreAllPlayers(idGame) {
+    try{
+        const findScoreByGame = await score.findAll({
+        where: {
+            gameId: idGame
+        },
+        include: {
+                model: player,
+                attributes: ['username']
+            }
+        });
+
+        if(findScoreByGame.length === 0) throw new Error('The game ID does not correspond to any stored')
+        const scorePlayers = findScoreByGame.map(p => ({
+            username: p.player.username,
+            score: p.score
+        }));
+
+        return {
+            game_id: idGame,
+            score: scorePlayers
+        };
+    }catch(error){
+        throw new Error(`Error: ${error.message || error}`);
     }
 }

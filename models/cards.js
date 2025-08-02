@@ -20,6 +20,11 @@ const card = sequelize.define('card', {
     gameId: {
         type: DataTypes.INTEGER,
         allowNull: false
+    },
+    isDiscarded:{
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
     }
 }, {
     timestamps: true,

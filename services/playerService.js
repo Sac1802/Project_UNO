@@ -1,11 +1,15 @@
 import player from '../models/player.js'
+import bcrypt from 'bcrypt'
+
 
 export async function savePlayer(playerData) {
     try{
-        const newPlayer = await player.create(playerData);
-        return newPlayer;
+        const passwordEncrypt = await encryptPassword(playerData.password);
+        playerData.password = passwordEncrypt;
+        await player.create(playerData);
+        return { message: 'User registered successfully' };
     }catch(error){
-        throw new Error(`Error creating player: ${error.message}`)
+        throw new Error(`Error: User already exists`)
     }
 }
 
@@ -26,6 +30,20 @@ export async function getByIdPlayer(id){
         throw new Error(`The player with ${id} not exists`);
     }
 }
+
+export async function getByIdByToken(id){
+    try{
+        const playerById = await player.findByPk(id);
+        return {
+            id: playerById.id,
+            username: playerById.username,
+            email: playerById.email,
+            age: playerById.age
+        };
+    }catch(error){
+        throw new Error(`The player with ${id} not exists`);
+    }
+} 
 
 export async function updateFullPlayer(newData, id){
     const userValid = await player.findByPk(id);
@@ -59,4 +77,10 @@ export async function patchPlayer(newData, id){
     }catch(error){
         throw new Error(`Error update player: ${error.message}`);
     }
+}
+
+async function encryptPassword(password) {
+  const saltRounds = 10;
+  const hash = await bcrypt.hash(password, saltRounds);
+  return hash;
 }

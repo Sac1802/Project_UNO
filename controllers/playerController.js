@@ -64,6 +64,18 @@ export async function patchPlayer(req, res, next){
     }
 }
 
+export async function getPlayerByToken(req, res, next){
+    const idPlayer = req.user.playerId;
+    console.log('the player id is: ', idPlayer);
+    if(!idPlayer) return res.status(400).json({ message: "Player ID is required" });
+    try{
+        const player = await playerService.getByIdByToken(idPlayer);
+        return res.status(200).json(player);
+    }catch(error){
+        next(error);
+    }
+}
+
 function validateInputPlayer(data){
     return Object.values(data).some(val => 
         val === null || val === undefined || val === '');

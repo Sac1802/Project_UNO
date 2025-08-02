@@ -13,7 +13,8 @@ export async function saveCardsAuto(id) {
                     const cardUNO = {
                         color,
                         value,
-                        gameId: id
+                        gameId: id,
+                        isDiscarded: false
                     };
                     await card.create(cardUNO);
                 }
@@ -25,7 +26,8 @@ export async function saveCardsAuto(id) {
                 const cardWild = {
                     color: 'black',
                     value: type,
-                    gameId: id
+                    gameId: id,
+                    isDiscarded: false
                 };
                 await card.create(cardWild);
             }

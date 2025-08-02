@@ -3,6 +3,7 @@ import card from "../models/cards.js";
 
 export async function createCard(data){
     try{
+        data.isDiscarded = false;
         const cardSaved = card.create(data);
         return cardSaved;
     }catch(error){
@@ -57,5 +58,24 @@ export async function patchCard(newData, id) {
         return cardUpdated;
     }catch(error){
         throw new Error(`Error update card: ${error.message}`);
+    }
+}
+
+export async function getTopCrad(id){
+    try{
+        const topCard = await card.findOne({
+            where:{
+                gameId: id,
+                isDiscarded: true
+            },
+            order: [['id', 'DESC']]
+        });
+        if(!topCard) throw new Error('There are no letters in this game');
+        return {
+            game_id: id,
+            top_card: `${topCard.value} of ${topCard.color}`
+        }
+    }catch(error){
+        throw new Error(`Error get top card: ${error.message}`);
     }
 }
