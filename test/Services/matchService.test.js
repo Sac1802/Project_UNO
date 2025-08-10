@@ -13,6 +13,8 @@ jest.mock("../../models/match.js", () => ({
 import * as game from "../../models/games.js";
 import * as match from "../../models/match.js";
 import * as matchService from "../../services/matchService.js";
+import player from "../../models/player.js";
+
 
 describe("matchService", () => {
   beforeEach(() => {
@@ -202,5 +204,53 @@ describe("matchService", () => {
       );
       expect(response.error).toBe("DB error");
     });
+  });
+});
+
+describe("getPlayers", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("returns players list for valid game", async () => {
+    game.findByPk.mockResolvedValue({ id: 10 });
+
+    match.findAll.mockResolvedValue([
+      { player: { username: "Artorias" } },
+      { player: { username: "Guts" } },
+      { player: { username: "Lady Maria" } },
+    ]);
+
+    const response = await matchService.getPlayers(10);
+
+    expect(game.findByPk).toHaveBeenCalledWith(10);
+    expect(match.findAll).toHaveBeenCalledWith({
+      where: { id_game: 10 },
+      include: {
+        model: player,
+        attributes: ["username"],
+      },
+    });
+    expect(response).toEqual({
+      game_id: 10,
+      players: ["Artorias", "Guts", "Lady Maria"],
+    });
+  });
+
+  test("returns message if game not found", async () => {
+    game.findByPk.mockResolvedValue(null);
+
+    const response = await matchService.getPlayers(999);
+
+    expect(response).toEqual({ message: "Game not found" });
+  });
+
+  test("handles errors gracefully", async () => {
+    game.findByPk.mockRejectedValue(new Error("DB error"));
+
+    const response = await matchService.getPlayers(1);
+
+    expect(response.message).toBe("An error occurred while retrieving players");
+    expect(response.error).toBe("DB error");
   });
 });
