@@ -20,7 +20,8 @@
   },
   "devDependencies": {
     "base": "^3.0.0",
-    "jest": "^30.0.5"
+    "jest": "^30.0.5",
+    "supertest": "^7.1.4"
   },
   "jest": {
     "collectCoverage": true

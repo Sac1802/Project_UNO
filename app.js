@@ -21,13 +21,13 @@ const excludedRoutes = [
 ];
 
 
-app.use((req, res, next) => {
-  const isExcluded = excludedRoutes.includes(req.path);
-  if (isExcluded) {
-    return next();
-  }
-  verifyToken(req, res, next);
-});
+// app.use((req, res, next) => {
+//   const isExcluded = excludedRoutes.includes(req.path);
+//   if (isExcluded) {
+//     return next();
+//   }
+//   verifyToken(req, res, next);
+// });
 
 
 app.use('/api/games', gameRouter);
@@ -44,3 +44,5 @@ app.listen(port, () => {
   console.log(`The server app is listening on port ${port}`);
   console.log(`URL: http://localhost:${port}`);
 });
+
+export default app;

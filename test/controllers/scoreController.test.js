@@ -1,4 +1,3 @@
-// test/controllers/scoreController.test.js
 import * as scoreService from '../../services/scoreService.js';
 import * as scoreController from '../../controllers/scoreController.js';
 
