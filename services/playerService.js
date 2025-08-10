@@ -25,6 +25,9 @@ export async function getPlayers(){
 export async function getByIdPlayer(id){
     try{
         const playerById = await player.findByPk(id);
+        if(!playerById){
+            throw new Error(`The player with ${id} not exists`);
+        }
         return playerById;
     }catch(error){
         throw new Error(`The player with ${id} not exists`);

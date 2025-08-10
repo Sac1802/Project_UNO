@@ -1,6 +1,6 @@
 export const tokenBlackList =  new Set();
 
-export  function  revokeToken(token){
+export async function revokeToken(token){
     tokenBlackList.add(token);
 }
 

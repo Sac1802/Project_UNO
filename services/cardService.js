@@ -4,7 +4,7 @@ import card from "../models/cards.js";
 export async function createCard(data){
     try{
         data.isDiscarded = false;
-        const cardSaved = card.create(data);
+        const cardSaved = await card.create(data);
         return cardSaved;
     }catch(error){
         throw new Error(`Error create card: ${error.message}`);
@@ -13,7 +13,7 @@ export async function createCard(data){
 
 export async function getAllCards() {
     try{
-        const findAllCards = card.findAll();
+        const findAllCards = await card.findAll();
         return findAllCards;
     }catch(error){
         throw new Error(`Error get all cards: ${error.message}`);
@@ -22,7 +22,8 @@ export async function getAllCards() {
 
 export async function getByIdCard(id) {
     try{
-        const finById = card.findByPk(id);
+        const finById = await card.findByPk(id);
+        if(!finById) throw new Error(`The card with id ${id} does not exist`);
         return finById;
     }catch(error){
         throw new Error(`Error get card by Id: ${error.message}`);
@@ -30,7 +31,7 @@ export async function getByIdCard(id) {
 }
 
 export async function updateAll(newData,  id) {
-    const findCard = await  card.findByPk(id);
+    const findCard = await card.findByPk(id);
     if(!findCard) throw new Error(`Error can't get card with ${id}`);
     try{
         Object.assign(findCard, newData);
