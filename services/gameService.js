@@ -96,7 +96,7 @@ export async function endGame(idGame, id_player){
 }
 export async function getStatusGame(idGame) {
     const gameFind = await game.findByPk(idGame);
-    if(!gameFind) throw new Error(`The game with ${id} not exists`);
+    if(!gameFind) throw new Error(`The game with ${idGame} not exists`);
     try{
         return {
             game_id: idGame,
@@ -122,10 +122,10 @@ export async function getCurrentPlayer(idGame) {
             return { message: 'Game not found' };
         }
 
-        console.log(gameData.currentPlayer.username );
+        const username = gameData.currentPlayer?.username;
         return {
             game_id: idGame,
-            current_player: gameData.currentPlayer?.username || 'Unknown'
+            current_player: username ? username : 'Unknown'
         };
     } catch (error) {
         return {

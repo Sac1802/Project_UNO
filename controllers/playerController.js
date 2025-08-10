@@ -1,8 +1,9 @@
 import * as playerService from '../services/playerService.js'
 
-export async function createPlayet(req, res, next){
+export async function createPlayer(req, res, next){
     const playerData = req.body;
-    if(validateInputPlayer(playerData)) return res.status(400).json({error: 'All fields must be completed'});
+    if(validateInputPlayer(playerData)) 
+        return res.status(400).json({ error: 'All fields must be completed' });
     try{
         const playerCreated = await playerService.savePlayer(playerData);
         return res.status(201).json(playerCreated);
@@ -33,9 +34,10 @@ export async function getByIdPlayer(req, res, next){
 export async function updateFullPlayer(req, res, next){
     const dataUpdate = req.body;
     const id = req.params.id;
-    if(validateInputPlayer(dataUpdate)) res.status(400).json({error: 'All fields must be completed'});
+    if(validateInputPlayer(dataUpdate)) 
+        return res.status(400).json({ error: 'All fields must be completed' });
     try{
-        const playerUpdated = await playerService.updateFullPlayer(dataUpdate, id)
+        const playerUpdated = await playerService.updateFullPlayer(dataUpdate, id);
         return res.status(200).json(playerUpdated);
     }catch(error){
         next(error);
@@ -77,6 +79,7 @@ export async function getPlayerByToken(req, res, next){
 }
 
 function validateInputPlayer(data){
+    if(!data || Object.keys(data).length === 0) return true;
     return Object.values(data).some(val => 
         val === null || val === undefined || val === '');
 }

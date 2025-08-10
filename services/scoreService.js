@@ -57,7 +57,7 @@ export async function patchScore(newData, id){
         const newScore =  await findById.update(newData);
         return newScore;
     }catch(error){
-        throw new Error(`Error upadte score: ${error.message}`);
+        throw new Error(`Error update score: ${error.message}`);
     }
 }
 
