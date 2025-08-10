@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">72.72% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/11</span>
+                <span class='fraction'>8/11</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>2/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/1</span>
+                <span class='fraction'>1/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">72.72% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/11</span>
+                <span class='fraction'>8/11</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -87,39 +87,39 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import jwt from 'jsonwebtoken'
 import { isTokenRevoked } from '../utils/blackListToken.js'
 &nbsp;
-export function  <span class="fstat-no" title="function not covered" >verifyToken(</span>req, res,  next){
-    const headersAuth = <span class="cstat-no" title="statement not covered" >req.headers.authorization;</span>
-<span class="cstat-no" title="statement not covered" >    if(!headersAuth?.startsWith('Bearer ')){</span>
+export function  verifyToken(req, res,  next){
+    const headersAuth = req.headers.authorization;
+    <span class="missing-if-branch" title="if path not taken" >I</span>if(!headersAuth?.startsWith('Bearer ')){
 <span class="cstat-no" title="statement not covered" >        return res.status(401).json({ message: 'Token missing or invalid' });</span>
     }
-    const token = <span class="cstat-no" title="statement not covered" >headersAuth.split(' ')[1];</span>
-<span class="cstat-no" title="statement not covered" >    if(isTokenRevoked(token)) {</span>
+    const token = headersAuth.split(' ')[1];
+    <span class="missing-if-branch" title="if path not taken" >I</span>if(isTokenRevoked(token)) {
 <span class="cstat-no" title="statement not covered" >        return res.status(403).json({message: 'Token  has been revoked'});</span>
     }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    try{</span>
-        const decode = <span class="cstat-no" title="statement not covered" >jwt.verify(token, process.env.JWT_SECRET);</span>
-<span class="cstat-no" title="statement not covered" >        req.user = decode;</span>
-<span class="cstat-no" title="statement not covered" >        next();</span>
+    try{
+        const decode = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decode;
+        next();
     }catch{
 <span class="cstat-no" title="statement not covered" >        return res.status(401).json({message: 'Invalid token'});</span>
     }
@@ -130,7 +130,7 @@ export function  <span class="fstat-no" title="function not covered" >verifyToke
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-10T15:50:17.360Z
+                at 2025-08-10T18:40:57.438Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -54,7 +54,7 @@ export async function getUserById(id) {
 }
 
 async function generateToken(id) {
-  return (token = jwt.sign({ playerId: id }, process.env.JWT_SECRET, {
+  return jwt.sign({ playerId: id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES,
-  }));
+  });
 }

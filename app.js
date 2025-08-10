@@ -17,17 +17,17 @@ app.use(express.json());
 
 const excludedRoutes = [
   '/api/auth/login',
-  '/api/players/'
+  '/api/players'
 ];
 
 
-// app.use((req, res, next) => {
-//   const isExcluded = excludedRoutes.includes(req.path);
-//   if (isExcluded) {
-//     return next();
-//   }
-//   verifyToken(req, res, next);
-// });
+app.use((req, res, next) => {
+  const isExcluded = excludedRoutes.includes(req.path);
+  if (isExcluded) {
+    return next();
+  }
+  verifyToken(req, res, next);
+});
 
 
 app.use('/api/games', gameRouter);
