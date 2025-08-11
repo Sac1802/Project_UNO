@@ -4,7 +4,7 @@ import player from "../models/player.js";
 export async function createGame(dataGame, id_owner) {
     try{
         dataGame.game_owner =  id_owner;
-        dataGame.currect_turn_palyer_id = id_owner;
+        dataGame.current_turn_player_id = id_owner;
         const createdGame = await game.create(dataGame);
         return {
             message: 'Game created successfully',

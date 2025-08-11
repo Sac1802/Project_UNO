@@ -2,15 +2,35 @@ import request from "supertest";
 import app from "../../app.js";
 import sequelize from "../../db/db.js";
 import player from "../../models/player.js";
+import { Op } from "sequelize";
+import bcrypt from "bcrypt";
 
 describe("Database integration tests for Player CRUD", () => {
+  let token;
+
   beforeAll(async () => {
     await sequelize.authenticate();
     await sequelize.sync({ force: true });
+
+    const hashedPassword = await bcrypt.hash("sirris", 10);
+
+    await player.create({
+      username: "sirris",
+      age: 30,
+      email: "sirris@example.com",
+      password: hashedPassword,
+    });
+
+    const loginRes = await request(app)
+      .post("/api/auth/login")
+      .send({ username: "sirris", password: "sirris" })
+      .expect(200);
+    
+    token = loginRes.body?.right?.access_token || null;
   });
 
   beforeEach(async () => {
-    await player.destroy({ where: {} });
+    await player.destroy({ where: { username: { [Op.ne]: "sirris" } } });
   });
 
   afterAll(async () => {
@@ -20,11 +40,12 @@ describe("Database integration tests for Player CRUD", () => {
   it("should create a new player", async () => {
     const res = await request(app)
       .post("/api/players")
+      .set("Authorization", `Bearer ${token}`)
       .send({
         username: "Artorias",
         age: 35,
         email: "artorias@fromsoft.com",
-        password: "abysswalker"
+        password: "abysswalker",
       })
       .expect(201);
 
@@ -36,13 +57,17 @@ describe("Database integration tests for Player CRUD", () => {
       username: "Guts",
       age: 28,
       email: "guts@fromsoft.com",
-      password: "dragonslayer"
+      password: "dragonslayer",
     });
 
-    const res = await request(app).get("/api/players").expect(200);
+    const res = await request(app)
+      .get("/api/players")
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200);
+
     expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body.length).toBe(1);
-    expect(res.body[0].username).toBe("Guts");
+    expect(res.body.length).toBeGreaterThanOrEqual(1);
+    expect(res.body.some((p) => p.username === "Guts")).toBe(true);
   });
 
   it("should get a player by ID", async () => {
@@ -50,11 +75,12 @@ describe("Database integration tests for Player CRUD", () => {
       username: "Lady Maria",
       age: 27,
       email: "ladymaria@fromsoft.com",
-      password: "astralclocktower"
+      password: "astralclocktower",
     });
 
     const res = await request(app)
       .get(`/api/players/${created.id}`)
+      .set("Authorization", `Bearer ${token}`)
       .expect(200);
 
     expect(res.body.username).toBe("Lady Maria");
@@ -65,16 +91,17 @@ describe("Database integration tests for Player CRUD", () => {
       username: "Maliketh",
       age: 40,
       email: "maliketh@fromsoft.com",
-      password: "blackblade"
+      password: "blackblade",
     });
 
     const res = await request(app)
       .put(`/api/players/${created.id}`)
+      .set("Authorization", `Bearer ${token}`)
       .send({
         username: "Maliketh the Black Blade",
         age: 41,
         email: "malikethblackblade@fromsoft.com",
-        password: "destineddeath"
+        password: "destineddeath",
       })
       .expect(200);
 
@@ -87,10 +114,13 @@ describe("Database integration tests for Player CRUD", () => {
       username: "Gehrman",
       age: 60,
       email: "gehrman@fromsoft.com",
-      password: "firsthunter"
+      password: "firsthunter",
     });
 
-    await request(app).delete(`/api/players/${created.id}`).expect(204);
+    await request(app)
+      .delete(`/api/players/${created.id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .expect(204);
 
     const found = await player.findByPk(created.id);
     expect(found).toBeNull();

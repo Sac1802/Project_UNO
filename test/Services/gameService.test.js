@@ -27,7 +27,7 @@ describe("gameService", () => {
         expect.objectContaining({
           ...data,
           game_owner: id_owner,
-          currect_turn_palyer_id: id_owner,
+          current_turn_player_id: id_owner,
         })
       );
       expect(result).toEqual({
