@@ -100,3 +100,55 @@ In this Readme, you can find information about the project as well as the midter
 
 ## Image web
 ![postman_image](./img/postman_image.png)
+
+---
+
+## SOLID Principles
+
+### Single Responsibility Principle (SRP)
+
+The Single Responsibility Principle (SRP) was applied by splitting the `gameService` class, which originally handled multiple responsibilities, into four specialized services:
+
+* `GameCreationService`: Handles only the creation of new games.
+* `GameGetService`: Manages retrieving data for a specific game or for all games.
+* `GameStatusService`: Manages the different states of games, including starting and ending games.
+* `GameUpdateService`: Handles updating data for existing games and performing partial deletions or changes.
+
+This separation allows each class to have a single responsibility, making it easier to read, maintain, and test the code, and preventing a change in one feature from affecting others.
+
+---
+
+### Open/Closed Principle (OCP)
+
+The open/closed principle states that code should be open to **extensions** but closed to **modifications**.
+In this project, `gameLimit.js` exemplifies this principle: it allows time limits to be added to games without modifying the existing logic of services or models. If a new type of limit or rule were to be implemented, it could be done through new functions or methods without altering the original code. This ensures a **clean, scalable, and maintainable** design.
+
+---
+
+### Liskov Substitution Principle (LSP)
+
+LSP indicates that objects of a subclass should be able to replace those of its superclass without altering the program's functionality.
+In this case, `gameFast.js` represents a specialized type of game that follows the same structure as `game` and can override behaviors, such as player limits or game time. Thanks to this, services that operate on `game` can use `gameFast` without additional changes, maintaining system compatibility and consistency.
+
+---
+
+### Interface Segregation Principle (ISP)
+
+ISP recommends small, specific interfaces, avoiding forcing classes to implement methods they don't use.
+Here, it is implemented through the `IGameRepository` interface, which defines only the methods that services need to interact with the database (create, retrieve, update, delete games, etc.). This allows each service to depend only on the methods it actually uses, achieving more modular, readable, and maintainable code.
+
+---
+
+### Dependency Inversion Principle (DIP)
+
+DIP establishes that classes should depend on abstractions, not concrete implementations.
+The services (`GameCreationService`, `GameGetService`, `GameStatusService`, `GameUpdateService`) depend on the `IGameRepository` interface and not on the concrete `GameRepository` class. This allows the implementation of data persistence to be changed (for example, using another database or a mock for testing) without modifying the services, increasing the flexibility, scalability, and testability of the system.
+
+---
+
+### Unit Test
+
+![unit_test](./img/unit_test.png)
+
+### Using Monads
+The Monad pattern is used to handle errors in the application. In particular, the `Either` monad is used to encapsulate successful and failed outcomes. This pattern is useful because it allows errors to be propagated in a controlled manner through the call chain, which simplifies exception handling and improves code clarity.

@@ -1,18 +1,13 @@
-import * as loginService from "../services/loginService.js";
+import {LoginService} from "../services/loginService.js";
+import { PlayerRepository } from "../repository/playerRepository.js";
+
+const playerRepository = new PlayerRepository();
+const loginService = new LoginService(playerRepository);
 
 export async function login(req, res, next) {
   const userData = req.body;
-  try {
-    const result = await loginService.loginUser(userData);
-    if (result.isRight()) {
-      return res.status(200).json(result);
-    } else {
-      const error = result.getError();
-      return res.status(error.statusCode || 400).json({ error: error.message });
-    }
-  } catch (error) {
-    next(error);
-  }
+  const result = await loginService.loginUser(userData);
+  return res.status(200).json(result);
 }
 
 export async function logout(req, res, next) {

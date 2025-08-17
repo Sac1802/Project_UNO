@@ -1,33 +1,89 @@
-import * as cardService from "../../services/cardService.js";
-import card from "../../models/cards.js";
+import { CardsService } from "../../services/cardService.js";
+import { CardRepository } from "../../repository/CardRepository.js";
 
-jest.mock("../../models/cards.js");
+jest.mock("../../repository/CardRepository.js");
 
-describe("cardService", () => {
+describe("CardsService", () => {
+  let cardsService;
+  let mockCardRepository;
+
   beforeEach(() => {
+    mockCardRepository = {
+      createCard: jest.fn(),
+      getAllCards: jest.fn(),
+      getByIdCard: jest.fn(),
+      updateAll: jest.fn(),
+      deleteById: jest.fn(),
+      patchCard: jest.fn(),
+      topCard: jest.fn(),
+    };
+
+    CardRepository.mockImplementation(() => mockCardRepository);
+    cardsService = new CardsService(mockCardRepository);
     jest.clearAllMocks();
   });
 
-  describe("Create Card", () => {
-    test("should create a card", async () => {
+  describe("createCard", () => {
+    test("should create a card successfully", async () => {
       const cardData = {
         color: "blue",
         value: "9",
         gameId: 1,
+      };
+      const expectedCardData = {
+        ...cardData,
         isDiscarded: false,
       };
-      const mockCreatedCard = { id: 1, ...cardData };
-      card.create.mockResolvedValue(mockCreatedCard);
+      const mockCreatedCard = { id: 1, ...expectedCardData };
+      
+      mockCardRepository.createCard.mockResolvedValue(mockCreatedCard);
 
-      const createdCard = await cardService.createCard(cardData);
+      const result = await cardsService.createCard(cardData);
 
-      expect(card.create).toHaveBeenCalledWith(cardData);
-      expect(createdCard).toEqual(mockCreatedCard);
+      expect(mockCardRepository.createCard).toHaveBeenCalledWith(expectedCardData);
+      expect(result).toEqual(mockCreatedCard);
+    });
+
+    test("should throw error when repository fails", async () => {
+      const cardData = { color: "blue", value: "9", gameId: 1 };
+      const repositoryError = new Error("Database error");
+      
+      mockCardRepository.createCard.mockRejectedValue(repositoryError);
+
+      await expect(cardsService.createCard(cardData)).rejects.toThrow(
+        "Error create card: Database error"
+      );
     });
   });
 
-  describe("Get Card By ID", () => {
-    test("should get a card by ID", async () => {
+  describe("getAllCards", () => {
+    test("should return all cards successfully", async () => {
+      const mockCards = [
+        { id: 1, color: "blue", value: "9" },
+        { id: 2, color: "red", value: "5" }
+      ];
+      
+      mockCardRepository.getAllCards.mockResolvedValue(mockCards);
+
+      const result = await cardsService.getAllCards();
+
+      expect(mockCardRepository.getAllCards).toHaveBeenCalled();
+      expect(result).toEqual(mockCards);
+    });
+
+    test("should throw error when repository fails", async () => {
+      const repositoryError = new Error("DB error");
+      
+      mockCardRepository.getAllCards.mockRejectedValue(repositoryError);
+
+      await expect(cardsService.getAllCards()).rejects.toThrow(
+        "Error get all cards: DB error"
+      );
+    });
+  });
+
+  describe("getByIdCard", () => {
+    test("should get a card by ID successfully", async () => {
       const mockCard = {
         id: 1,
         color: "blue",
@@ -35,135 +91,171 @@ describe("cardService", () => {
         gameId: 1,
         isDiscarded: false,
       };
-      card.findByPk.mockResolvedValue(mockCard);
+      
+      mockCardRepository.getByIdCard.mockResolvedValue(mockCard);
 
-      const foundCard = await cardService.getByIdCard(1);
+      const result = await cardsService.getByIdCard(1);
 
-      expect(card.findByPk).toHaveBeenCalledWith(1);
-      expect(foundCard).toEqual(mockCard);
+      expect(mockCardRepository.getByIdCard).toHaveBeenCalledWith(1);
+      expect(result).toEqual(mockCard);
     });
 
     test("should throw error if card not found", async () => {
-      card.findByPk.mockResolvedValue(null);
+      mockCardRepository.getByIdCard.mockResolvedValue(null);
 
-      await expect(cardService.getByIdCard(999)).rejects.toThrow(
-        "The card with id 999 does not exist"
+      await expect(cardsService.getByIdCard(999)).rejects.toThrow(
+        "Error get card by Id: The card with id 999 does not exist"
+      );
+    });
+
+    test("should throw error when repository fails", async () => {
+      const repositoryError = new Error("Database error");
+      
+      mockCardRepository.getByIdCard.mockRejectedValue(repositoryError);
+
+      await expect(cardsService.getByIdCard(1)).rejects.toThrow(
+        "Error get card by Id: Database error"
       );
     });
   });
 
-  describe("Update Card", () => {
-    test("should update a card", async () => {
+  describe("updateAll", () => {
+    test("should update a card successfully", async () => {
       const cardData = { color: "red" };
-      const mockCardInstance = {
-        save: jest.fn().mockResolvedValue({ id: 1, ...cardData }),
-      };
-      card.findByPk.mockResolvedValue(mockCardInstance);
+      const mockExistingCard = { id: 1, color: "blue", value: "9" };
+      const mockUpdatedCard = { id: 1, color: "red", value: "9" };
+      
+      mockCardRepository.getByIdCard.mockResolvedValue(mockExistingCard);
+      mockCardRepository.updateAll.mockResolvedValue(mockUpdatedCard);
 
-      const updatedCard = await cardService.updateAll(cardData, 1);
+      const result = await cardsService.updateAll(cardData, 1);
 
-      expect(card.findByPk).toHaveBeenCalledWith(1);
-      expect(mockCardInstance.save).toHaveBeenCalled();
-      expect(updatedCard).toEqual({ id: 1, ...cardData });
+      expect(mockCardRepository.getByIdCard).toHaveBeenCalledWith(1);
+      expect(mockCardRepository.updateAll).toHaveBeenCalledWith(cardData, 1);
+      expect(result).toEqual(mockUpdatedCard);
     });
 
-    test("should throw error if update target card not found", async () => {
-      card.findByPk.mockResolvedValue(null);
+    test("should throw error if card not found", async () => {
+      mockCardRepository.getByIdCard.mockResolvedValue(null);
 
-      await expect(cardService.updateAll({ color: "red" }, 999)).rejects.toThrow(
+      await expect(cardsService.updateAll({ color: "red" }, 999)).rejects.toThrow(
         "Error can't get card with 999"
+      );
+    });
+
+    test("should throw error when repository update fails", async () => {
+      const mockExistingCard = { id: 1, color: "blue", value: "9" };
+      const repositoryError = new Error("Update failed");
+      
+      mockCardRepository.getByIdCard.mockResolvedValue(mockExistingCard);
+      mockCardRepository.updateAll.mockRejectedValue(repositoryError);
+
+      await expect(cardsService.updateAll({ color: "red" }, 1)).rejects.toThrow(
+        "Error update card: Update failed"
       );
     });
   });
 
-  describe("Delete Card", () => {
-    test("should delete a card", async () => {
-      const mockCardInstance = {
-        destroy: jest.fn().mockResolvedValue(),
-      };
-      card.findByPk.mockResolvedValue(mockCardInstance);
+  describe("deleteById", () => {
+    test("should delete a card successfully", async () => {
+      const mockExistingCard = { id: 1, color: "blue", value: "9" };
+      
+      mockCardRepository.getByIdCard.mockResolvedValue(mockExistingCard);
+      mockCardRepository.deleteById.mockResolvedValue();
 
-      await expect(cardService.deleteById(1)).resolves.toBeUndefined();
+      await expect(cardsService.deleteById(1)).resolves.toBeUndefined();
 
-      expect(card.findByPk).toHaveBeenCalledWith(1);
-      expect(mockCardInstance.destroy).toHaveBeenCalled();
+      expect(mockCardRepository.getByIdCard).toHaveBeenCalledWith(1);
+      expect(mockCardRepository.deleteById).toHaveBeenCalledWith(1);
     });
 
-    test("should throw error if delete target card not found", async () => {
-      card.findByPk.mockResolvedValue(null);
-      await expect(cardService.deleteById(999)).rejects.toThrow(
+    test("should throw error if card not found", async () => {
+      mockCardRepository.getByIdCard.mockResolvedValue(null);
+
+      await expect(cardsService.deleteById(999)).rejects.toThrow(
         "Error can't get card with 999"
+      );
+    });
+
+    test("should throw error when repository delete fails", async () => {
+      const mockExistingCard = { id: 1, color: "blue", value: "9" };
+      const repositoryError = new Error("Delete failed");
+      
+      mockCardRepository.getByIdCard.mockResolvedValue(mockExistingCard);
+      mockCardRepository.deleteById.mockRejectedValue(repositoryError);
+
+      await expect(cardsService.deleteById(1)).rejects.toThrow(
+        "Error delete card: Delete failed"
       );
     });
   });
 
-  describe("Patch Card", () => {
-    test("should patch a card", async () => {
+  describe("patchCard", () => {
+    test("should patch a card successfully", async () => {
       const cardData = { value: "5" };
-      const mockCardInstance = {
-        update: jest.fn().mockResolvedValue({ id: 1, ...cardData }),
-      };
-      card.findByPk.mockResolvedValue(mockCardInstance);
+      const mockExistingCard = { id: 1, color: "blue", value: "9" };
+      const mockPatchedCard = { id: 1, color: "blue", value: "5" };
+      
+      mockCardRepository.getByIdCard.mockResolvedValue(mockExistingCard);
+      mockCardRepository.patchCard.mockResolvedValue(mockPatchedCard);
 
-      const patchedCard = await cardService.patchCard(cardData, 1);
+      const result = await cardsService.patchCard(cardData, 1);
 
-      expect(card.findByPk).toHaveBeenCalledWith(1);
-      expect(mockCardInstance.update).toHaveBeenCalledWith(cardData);
-      expect(patchedCard).toEqual({ id: 1, ...cardData });
+      expect(mockCardRepository.getByIdCard).toHaveBeenCalledWith(1);
+      expect(mockCardRepository.patchCard).toHaveBeenCalledWith(cardData, 1);
+      expect(result).toEqual(mockPatchedCard);
     });
 
-    test("should throw error if patch target card not found", async () => {
-      card.findByPk.mockResolvedValue(null);
-      await expect(cardService.patchCard({ value: "5" }, 999)).rejects.toThrow(
+    test("should throw error if card not found", async () => {
+      mockCardRepository.getByIdCard.mockResolvedValue(null);
+
+      await expect(cardsService.patchCard({ value: "5" }, 999)).rejects.toThrow(
         "Error can't get card with 999"
       );
     });
-  });
 
-  describe("Get All Cards", () => {
-    test("getAllCards returns all cards", async () => {
-      const mockCards = [{ id: 1 }, { id: 2 }];
-      card.findAll.mockResolvedValue(mockCards);
+    test("should throw error when repository patch fails", async () => {
+      const mockExistingCard = { id: 1, color: "blue", value: "9" };
+      const repositoryError = new Error("Patch failed");
+      
+      mockCardRepository.getByIdCard.mockResolvedValue(mockExistingCard);
+      mockCardRepository.patchCard.mockRejectedValue(repositoryError);
 
-      const cards = await cardService.getAllCards();
-      expect(card.findAll).toHaveBeenCalled();
-      expect(cards).toEqual(mockCards);
-    });
-
-    test("getAllCards throws error when findAll fails", async () => {
-      card.findAll.mockRejectedValue(new Error("DB error"));
-
-      await expect(cardService.getAllCards()).rejects.toThrow(
-        "Error get all cards: DB error"
+      await expect(cardsService.patchCard({ value: "5" }, 1)).rejects.toThrow(
+        "Error update card: Patch failed"
       );
     });
   });
 
-  describe("Get Top Card", () => {
-    test("getTopCrad returns formatted top card info", async () => {
+  describe("getTopCard", () => {
+    test("should return formatted top card info successfully", async () => {
       const mockTopCard = { value: "5", color: "red" };
-      card.findOne.mockResolvedValue(mockTopCard);
+      
+      mockCardRepository.topCard.mockResolvedValue(mockTopCard);
 
-      const result = await cardService.getTopCrad(10);
-      expect(card.findOne).toHaveBeenCalledWith({
-        where: { gameId: 10, isDiscarded: true },
-        order: [["id", "DESC"]],
+      const result = await cardsService.getTopCard(10);
+
+      expect(mockCardRepository.topCard).toHaveBeenCalledWith(10);
+      expect(result).toEqual({ 
+        game_id: 10, 
+        top_card: "5 of red" 
       });
-      expect(result).toEqual({ game_id: 10, top_card: "5 of red" });
     });
 
-    test("getTopCrad throws error if no top card", async () => {
-      card.findOne.mockResolvedValue(null);
+    test("should throw error if no top card found", async () => {
+      mockCardRepository.topCard.mockResolvedValue(null);
 
-      await expect(cardService.getTopCrad(5)).rejects.toThrow(
-        "There are no letters in this game"
+      await expect(cardsService.getTopCard(5)).rejects.toThrow(
+        "Error get top card: There are no letters in this game"
       );
     });
 
-    test("getTopCrad throws error if findOne throws", async () => {
-      card.findOne.mockRejectedValue(new Error("DB fail"));
+    test("should throw error when repository fails", async () => {
+      const repositoryError = new Error("DB fail");
+      
+      mockCardRepository.topCard.mockRejectedValue(repositoryError);
 
-      await expect(cardService.getTopCrad(5)).rejects.toThrow(
+      await expect(cardsService.getTopCard(5)).rejects.toThrow(
         "Error get top card: DB fail"
       );
     });

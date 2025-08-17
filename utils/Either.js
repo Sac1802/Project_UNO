@@ -16,6 +16,10 @@ class Either {
     return this.right !== null;
   }
 
+  isLeft() {
+    return this.left !== null;
+  }
+
   map(fn) {
     return this.isRight() ? Either.right(fn(this.right)) : this;
   }

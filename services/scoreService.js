@@ -1,89 +1,154 @@
 import player from "../models/player.js";
-import score from "../models/score.js";
+import Either from "../utils/Either.js";
 
-export async function saveScore(scoreData) {
-    try{
-        const savedScore = await score.create(scoreData);
-        return savedScore;
-    }catch(error){
-        throw new Error(`Error creating score: ${error.message}`)
+export class ScoreService {
+  constructor(scoreRepo) {
+    this.scoreRepo = scoreRepo;
+  }
+
+  async saveScore(scoreData) {
+    const savedScore = await this.scoreRepo.saveScore(scoreData);
+
+    if (savedScore.isLeft()) {
+      return Either.left({
+        message: "Score could not be created",
+        statusCode: 500,
+      });
     }
-}
 
-export async function getAllScore(){
-    try{
-        const getAllScore = await score.findAll();
-        return getAllScore;
-    }catch(error){
-        throw new Error(`Error score cannot be obtained: ${error.message}`)
+    return Either.right({
+      message: "Score registered successfully",
+      score: savedScore.value,
+    });
+  }
+
+  async getAllScore() {
+    const scores = await this.scoreRepo.getAllScore();
+
+    if (scores.isLeft()) {
+      return Either.left({
+        message: "Scores cannot be obtained",
+        statusCode: 404,
+      });
     }
-}
 
-export async function getById(id){
-    try{
-        const findScoreById = await score.findByPk(id);
-        return findScoreById;
-    }catch(error){
-        throw new Error(`The score with ${id} not exists`);
+    return scores;
+  }
+
+  async getById(id) {
+    const scoreById = await this.scoreRepo.getById(id);
+
+    if (scoreById.isLeft()) {
+      return Either.left({
+        message: `The score with id ${id} does not exist`,
+        statusCode: 404,
+      });
     }
-}
 
-export async function updateAll(newData, id){
-    const findById = await score.findByPk(id);
-    if(!findById) throw new Error(`The score with ${id} not exists`);
-    try{
-        Object.assign(findById, newData);
-        return await findById.save();
-    }catch(error){
-        throw new Error(`Score cannot be update: ${error.message}`);
-    } 
-}
+    return scoreById;
+  }
 
+  async updateAll(newData, id) {
+    const scoreById = await this.scoreRepo.getById(id);
 
-export async function deleteById(id){
-    const findById = await score.findByPk(id);
-    if(!findById) throw new Error(`The score with ${id} not exists`);
-    try{
-        await findById.destroy();
-    }catch(error){
-        throw new Error(`Error deleting score: ${error.message}`);
+    if (scoreById.isLeft()) {
+      return Either.left({
+        message: `The score with id ${id} does not exist`,
+        statusCode: 404,
+      });
     }
-}
 
-export async function patchScore(newData, id){
-    const findById = await score.findByPk(id);
-    if(!findById) throw new Error(`The score with ${id} not exists`);
-    try{
-        const newScore =  await findById.update(newData);
-        return newScore;
-    }catch(error){
-        throw new Error(`Error update score: ${error.message}`);
+    const updatedScore = await this.scoreRepo.updateAll(newData, id);
+
+    if (updatedScore.isLeft()) {
+      return Either.left({
+        message: "Score cannot be updated",
+        statusCode: 500,
+      });
     }
-}
 
-export async function scoreAllPlayers(idGame) {
-    try{
-        const findScoreByGame = await score.findAll({
-        where: {
-            gameId: idGame
-        },
-        include: {
-                model: player,
-                attributes: ['username']
-            }
-        });
+    return updatedScore;
+  }
 
-        if(findScoreByGame.length === 0) throw new Error('The game ID does not correspond to any stored')
-        const scorePlayers = findScoreByGame.map(p => ({
-            username: p.player.username,
-            score: p.score
-        }));
+  async deleteById(id) {
+    const scoreById = await this.scoreRepo.getById(id);
 
-        return {
-            game_id: idGame,
-            score: scorePlayers
-        };
-    }catch(error){
-        throw new Error(`Error: ${error.message || error}`);
+    if (scoreById.isLeft()) {
+      return Either.left({
+        message: `The score with id ${id} does not exist`,
+        statusCode: 404,
+      });
     }
+
+    const deleted = await this.scoreRepo.deleteById(id);
+
+    if (deleted.isLeft()) {
+      return Either.left({
+        message: "Error deleting score",
+        statusCode: 500,
+      });
+    }
+
+    return Either.right({ message: "Score deleted successfully" });
+  }
+
+  async patchScore(newData, id) {
+    const scoreById = await this.scoreRepo.getById(id);
+
+    if (scoreById.isLeft()) {
+      return Either.left({
+        message: `The score with id ${id} does not exist`,
+        statusCode: 404,
+      });
+    }
+
+    const updatedScore = await this.scoreRepo.patchScore(newData, id);
+
+    if (updatedScore.isLeft()) {
+      return Either.left({
+        message: "Error updating score",
+        statusCode: 500,
+      });
+    }
+
+    return updatedScore;
+  }
+
+  async scoreAllPlayers(idGame) {
+    const findScoreByGame = await this.scoreRepo.getAllScore({
+      where: {
+        gameId: idGame,
+      },
+      include: {
+        model: player,
+        attributes: ["username"],
+      },
+    });
+
+    if (findScoreByGame.isLeft()) {
+      return Either.left({
+        message: `The game with id ${idGame} has no scores`,
+        statusCode: 404,
+      });
+    }
+
+    const scores = findScoreByGame.value;
+
+    if (!scores || scores.length === 0) {
+      return Either.left({
+        message: `The game with id ${idGame} does not correspond to any stored`,
+        statusCode: 404,
+      });
+    }
+
+    const scorePlayers = scores.map((p) => ({
+      username: p.player.username,
+      score: p.score,
+    }));
+
+    return Either.right({
+      game_id: idGame,
+      score: scorePlayers,
+    });
+  }
 }
