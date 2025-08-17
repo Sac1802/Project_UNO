@@ -1,195 +1,249 @@
-import * as scoreService from "../../services/scoreService.js";
-import score from "../../models/score";
+import { ScoreService } from "../../services/scoreService.js";
+import { ScoreRepository } from "../../repository/ScoreRepository.js";
+import Either from "../../utils/Either.js";
 
-jest.mock("../../models/score");
+jest.mock("../../repository/ScoreRepository.js");
 
-describe("should create score", () => {
+describe("ScoreService", () => {
+  let scoreService;
+  let mockScoreRepository;
+
   beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test("should create score successfully", async () => {
-    score.create.mockResolvedValue({ id: 1 });
-    const scoreData = { playerId: 1, gameId: 1, score: 100 };
-
-    const result = await scoreService.saveScore(scoreData);
-
-    expect(score.create).toHaveBeenCalledWith(scoreData);
-    expect(result).toEqual({ id: 1 });
-  });
-
-  test("should throw error if create fails", async () => {
-    score.create.mockRejectedValue(new Error("DB failure"));
-    const scoreData = { playerId: 1, gameId: 1, score: 100 };
-
-    await expect(scoreService.saveScore(scoreData)).rejects.toThrow(
-      "Error creating score: DB failure"
-    );
-  });
-});
-
-describe("getAllScore", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test("should return all scores", async () => {
-    score.findAll.mockResolvedValue([{ id: 1 }, { id: 2 }]);
-
-    const result = await scoreService.getAllScore();
-
-    expect(score.findAll).toHaveBeenCalled();
-    expect(result).toEqual([{ id: 1 }, { id: 2 }]);
-  });
-
-  test("should throw error if findAll fails", async () => {
-    score.findAll.mockRejectedValue(new Error("DB error"));
-
-    await expect(scoreService.getAllScore()).rejects.toThrow(
-      "Error score cannot be obtained: DB error"
-    );
-  });
-});
-
-describe("getById", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test("should return score by id", async () => {
-    score.findByPk.mockResolvedValue({ id: 1 });
-
-    const result = await scoreService.getById(1);
-
-    expect(score.findByPk).toHaveBeenCalledWith(1);
-    expect(result).toEqual({ id: 1 });
-  });
-
-  test("should throw error if findByPk fails", async () => {
-    score.findByPk.mockRejectedValue(new Error("Not found"));
-
-    await expect(scoreService.getById(1)).rejects.toThrow(
-      "The score with 1 not exists"
-    );
-  });
-});
-
-describe("updateAll", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test("should update score successfully", async () => {
-    const mockSave = jest.fn().mockResolvedValue({ id: 1, score: 200 });
-    const mockScoreInstance = {
-      save: mockSave,
-      // Para que Object.assign funcione, podemos tener las propiedades iniciales:
-      id: 1,
-      score: 100,
+    mockScoreRepository = {
+      saveScore: jest.fn(),
+      getAllScore: jest.fn(),
+      getById: jest.fn(),
+      updateAll: jest.fn(),
+      deleteById: jest.fn(),
+      patchScore: jest.fn(),
     };
-    score.findByPk.mockResolvedValue(mockScoreInstance);
 
-    const newData = { score: 200 };
-    const result = await scoreService.updateAll(newData, 1);
-
-    expect(score.findByPk).toHaveBeenCalledWith(1);
-    expect(mockSave).toHaveBeenCalled();
-    expect(result).toEqual({ id: 1, score: 200 });
-  });
-
-  test("should throw error if score not found", async () => {
-    score.findByPk.mockResolvedValue(null);
-
-    await expect(scoreService.updateAll({}, 1)).rejects.toThrow(
-      "The score with 1 not exists"
-    );
-  });
-
-  test("should throw error if update fails", async () => {
-    score.findByPk.mockResolvedValue({
-      id: 1,
-      save: jest.fn().mockRejectedValue(new Error("DB error")),
-    });
-
-    await expect(scoreService.updateAll({}, 1)).rejects.toThrow(
-      "Score cannot be update: DB error"
-    );
-  });
-});
-
-describe("deleteById", () => {
-  beforeEach(() => {
+    ScoreRepository.mockImplementation(() => mockScoreRepository);
+    scoreService = new ScoreService(mockScoreRepository);
     jest.clearAllMocks();
   });
 
-  test("should delete score successfully", async () => {
-    score.findByPk.mockResolvedValue({
-      id: 1,
-      destroy: jest.fn().mockResolvedValue(),
+  describe("saveScore", () => {
+    test("should create score successfully", async () => {
+      const scoreData = { playerId: 1, gameId: 1, score: 100 };
+      const savedScore = Either.right({ id: 1, ...scoreData });
+
+      mockScoreRepository.saveScore.mockResolvedValue(savedScore);
+
+      const result = await scoreService.saveScore(scoreData);
+
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse({})).toEqual({
+        message: "Score registered successfully",
+        score: { id: 1, ...scoreData },
+      });
     });
 
-    await scoreService.deleteById(1);
+    test("should return left if creation fails", async () => {
+      const scoreData = { playerId: 1, gameId: 1, score: 100 };
+      const savedScore = Either.left({ error: "DB failure" });
 
-    expect(score.findByPk).toHaveBeenCalledWith(1);
+      mockScoreRepository.saveScore.mockResolvedValue(savedScore);
+
+      const result = await scoreService.saveScore(scoreData);
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.getError()).toEqual({
+        message: "Score could not be created",
+        statusCode: 500,
+      });
+    });
   });
 
-  test("should throw error if score not found", async () => {
-    score.findByPk.mockResolvedValue(null);
+  describe("getAllScore", () => {
+    test("should return all scores", async () => {
+      const mockScores = [{ id: 1 }, { id: 2 }];
+      mockScoreRepository.getAllScore.mockResolvedValue(Either.right(mockScores));
 
-    await expect(scoreService.deleteById(1)).rejects.toThrow(
-      "The score with 1 not exists"
-    );
-  });
+      const result = await scoreService.getAllScore();
 
-  test("should throw error if delete fails", async () => {
-    score.findByPk.mockResolvedValue({
-      id: 1,
-      destroy: jest.fn().mockRejectedValue(new Error("DB error")),
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse([])).toEqual(mockScores);
     });
 
-    await expect(scoreService.deleteById(1)).rejects.toThrow(
-      "Error deleting score: DB error"
-    );
-  });
-});
+    test("should return left if findAll fails", async () => {
+      mockScoreRepository.getAllScore.mockResolvedValue(Either.left({ error: "DB error" }));
 
-describe("patchScore", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+      const result = await scoreService.getAllScore();
 
-  test("should patch score successfully", async () => {
-    const newData = { score: 200 };
-    const mockUpdate = jest.fn().mockResolvedValue({ id: 1, ...newData });
-    const mockScoreInstance = {
-      update: mockUpdate,
-      id: 1,
-    };
-    score.findByPk.mockResolvedValue(mockScoreInstance);
-
-    const result = await scoreService.patchScore(newData, 1);
-
-    expect(score.findByPk).toHaveBeenCalledWith(1);
-    expect(mockUpdate).toHaveBeenCalledWith(newData);
-    expect(result).toEqual({ id: 1, score: 200 });
+      expect(result.isLeft()).toBe(true);
+      expect(result.getError()).toEqual({
+        message: "Scores cannot be obtained",
+        statusCode: 404,
+      });
+    });
   });
 
-  test("should throw error if score not found", async () => {
-    score.findByPk.mockResolvedValue(null);
+  describe("getById", () => {
+    test("should return score by id", async () => {
+      const scoreData = { id: 1, score: 100 };
+      mockScoreRepository.getById.mockResolvedValue(Either.right(scoreData));
 
-    await expect(scoreService.patchScore({}, 1)).rejects.toThrow(
-      "The score with 1 not exists"
-    );
-  });
+      const result = await scoreService.getById(1);
 
-  test("should throw error if patch fails", async () => {
-    score.findByPk.mockResolvedValue({
-      id: 1,
-      update: jest.fn().mockRejectedValue(new Error("DB error")),
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse({})).toEqual(scoreData);
     });
 
-    await expect(scoreService.patchScore({}, 1)).rejects.toThrow(
-      "Error update score: DB error"
-    );
+    test("should return left if score not found", async () => {
+      mockScoreRepository.getById.mockResolvedValue(Either.left({ error: "Not found" }));
+
+      const result = await scoreService.getById(1);
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.getError()).toEqual({
+        message: "The score with id 1 does not exist",
+        statusCode: 404,
+      });
+    });
+  });
+
+  describe("updateAll", () => {
+    test("should update score successfully", async () => {
+      const newData = { score: 200 };
+      const existingScore = Either.right({ id: 1, score: 100 });
+      const updatedScore = Either.right({ id: 1, score: 200 });
+
+      mockScoreRepository.getById.mockResolvedValue(existingScore);
+      mockScoreRepository.updateAll.mockResolvedValue(updatedScore);
+
+      const result = await scoreService.updateAll(newData, 1);
+
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse({})).toEqual({ id: 1, score: 200 });
+    });
+
+    test("should return left if score not found", async () => {
+      mockScoreRepository.getById.mockResolvedValue(Either.left({ error: "Not found" }));
+
+      const result = await scoreService.updateAll({}, 1);
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.getError()).toEqual({
+        message: "The score with id 1 does not exist",
+        statusCode: 404,
+      });
+    });
+
+    test("should return left if update fails", async () => {
+      const existingScore = Either.right({ id: 1, score: 100 });
+      const updateFailure = Either.left({ error: "DB error" });
+
+      mockScoreRepository.getById.mockResolvedValue(existingScore);
+      mockScoreRepository.updateAll.mockResolvedValue(updateFailure);
+
+      const result = await scoreService.updateAll({}, 1);
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.getError()).toEqual({
+        message: "Score cannot be updated",
+        statusCode: 500,
+      });
+    });
+  });
+
+  describe("deleteById", () => {
+    test("should delete score successfully", async () => {
+      mockScoreRepository.getById.mockResolvedValue(Either.right({ id: 1, score: 100 }));
+      mockScoreRepository.deleteById.mockResolvedValue(Either.right({ message: "Deleted" }));
+
+      const result = await scoreService.deleteById(1);
+
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse({})).toEqual({ message: "Score deleted successfully" });
+    });
+
+    test("should return left if score not found", async () => {
+      mockScoreRepository.getById.mockResolvedValue(Either.left({ error: "Not found" }));
+
+      const result = await scoreService.deleteById(1);
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.getError()).toEqual({
+        message: "The score with id 1 does not exist",
+        statusCode: 404,
+      });
+    });
+
+    test("should return left if delete fails", async () => {
+      mockScoreRepository.getById.mockResolvedValue(Either.right({ id: 1, score: 100 }));
+      mockScoreRepository.deleteById.mockResolvedValue(Either.left({ error: "DB error" }));
+
+      const result = await scoreService.deleteById(1);
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.getError()).toEqual({
+        message: "Error deleting score",
+        statusCode: 500,
+      });
+    });
+  });
+
+  describe("patchScore", () => {
+    test("should patch score successfully", async () => {
+      const existingScore = Either.right({ id: 1, score: 100 });
+      const patchedScore = Either.right({ id: 1, score: 200 });
+
+      mockScoreRepository.getById.mockResolvedValue(existingScore);
+      mockScoreRepository.patchScore.mockResolvedValue(patchedScore);
+
+      const result = await scoreService.patchScore({ score: 200 }, 1);
+
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse({})).toEqual({ id: 1, score: 200 });
+    });
+
+    test("should return left if score not found", async () => {
+      mockScoreRepository.getById.mockResolvedValue(Either.left({ error: "Not found" }));
+
+      const result = await scoreService.patchScore({}, 1);
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.getError()).toEqual({
+        message: "The score with id 1 does not exist",
+        statusCode: 404,
+      });
+    });
+  });
+
+  describe("scoreAllPlayers", () => {
+    test("should return scores for all players in a game", async () => {
+      const idGame = 1;
+      const mockScoresWithPlayers = [
+        { score: 100, player: { username: "player1" } },
+        { score: 200, player: { username: "player2" } }
+      ];
+
+      mockScoreRepository.getAllScore.mockResolvedValue(Either.right(mockScoresWithPlayers));
+
+      const result = await scoreService.scoreAllPlayers(idGame);
+
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse({})).toEqual({
+        game_id: idGame,
+        score: [
+          { username: "player1", score: 100 },
+          { username: "player2", score: 200 }
+        ]
+      });
+    });
+
+    test("should return left if no scores found", async () => {
+      const idGame = 1;
+      mockScoreRepository.getAllScore.mockResolvedValue(Either.left({ error: "No scores" }));
+
+      const result = await scoreService.scoreAllPlayers(idGame);
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.getError()).toEqual({
+        message: "The game with id 1 has no scores",
+        statusCode: 404,
+      });
+    });
   });
 });

@@ -1,89 +1,120 @@
-import player from '../models/player.js'
-import bcrypt from 'bcrypt'
+import bcrypt from "../utils/bcrypt.js";
+import Either from "../utils/Either.js";
 
+export class PlayerService {
+  constructor(playerRepo) {
+    this.playerRepo = playerRepo;
+  }
 
-export async function savePlayer(playerData) {
-    try{
-        const passwordEncrypt = await encryptPassword(playerData.password);
-        playerData.password = passwordEncrypt;
-        await player.create(playerData);
-        return { message: 'User registered successfully' };
-    }catch(error){
-        throw new Error(`Error: User already exists`)
+  async savePlayer(playerData) {
+    const passwordEncrypt = await bcrypt.encryptPassword(playerData.password);
+    playerData.password = passwordEncrypt;
+
+    const savedPlayer = await this.playerRepo.savePlayer(playerData);
+
+    if (savedPlayer.isLeft()) {
+      return Either.left({
+        message: "User could not be created (maybe already exists)",
+        statusCode: 400,
+      });
     }
-}
+    return Either.right({ message: "User registered successfully" });
+  }
 
-export async function getPlayers(){
-    try{
-        const players = await player.findAll();
-        return players;
-    }catch(error){
-        throw new Error(`Players cannot be obtained: ${error.message}`);
+  async getPlayers() {
+    const players = await this.playerRepo.getPlayers();
+    if (players.isLeft()) {
+      return Either.left({
+        message: "Players cannot be obtained",
+        statusCode: 404,
+      });
     }
-}
+    return players;
+  }
 
-export async function getByIdPlayer(id){
-    try{
-        const playerById = await player.findByPk(id);
-        if(!playerById){
-            throw new Error(`The player with ${id} not exists`);
-        }
-        return playerById;
-    }catch(error){
-        throw new Error(`The player with ${id} not exists`);
+  async getByIdPlayer(id) {
+    const playerById = await this.playerRepo.getByIdPlayer(id);
+    if (playerById.isLeft()) {
+      return Either.left({
+        message: `The player with id ${id} does not exist`,
+        statusCode: 404,
+      });
     }
-}
+    return playerById;
+  }
 
-export async function getByIdByToken(id){
-    try{
-        const playerById = await player.findByPk(id);
-        return {
-            id: playerById.id,
-            username: playerById.username,
-            email: playerById.email,
-            age: playerById.age
-        };
-    }catch(error){
-        throw new Error(`The player with ${id} not exists`);
+  async getByIdByToken(id) {
+    const playerById = await this.playerRepo.getByIdPlayer(id);
+    if (playerById.isLeft()) {
+      return Either.left({
+        message: `The player with id ${id} does not exist`,
+        statusCode: 404,
+      });
     }
-} 
 
-export async function updateFullPlayer(newData, id){
-    const userValid = await player.findByPk(id);
-    if(!userValid) throw new Error(`Error the player with ${id} not exists`);
-    try{
-        Object.assign(userValid, newData);
-        return await userValid.save();
-    }catch(error){
-        throw new Error(`Players cannot be update: ${error.message}`);
+    const playerData = playerById.value;
+    return Either.right({
+      id: playerData.id,
+      username: playerData.username,
+      email: playerData.email,
+      age: playerData.age,
+    });
+  }
+
+  async updateFullPlayer(newData, id) {
+    const playerById = await this.playerRepo.getByIdPlayer(id);
+    if (playerById.isLeft()) {
+      return Either.left({
+        message: `The player with id ${id} does not exist`,
+        statusCode: 404,
+      });
     }
-}
 
-
-export async function deletePlayer(id){
-    const playerFind = await player.findByPk(id);
-    if(!playerFind) throw new Error(`Error the player with ${id} not exists`);
-    try{
-        await playerFind.destroy();
-    }catch(error){
-        throw new Error(`Error deleting player: ${error.message}`)
+    const updatedPlayer = await this.playerRepo.updateFullPlayer(id, newData);
+    if (updatedPlayer.isLeft()) {
+      return Either.left({
+        message: "Players cannot be updated",
+        statusCode: 500,
+      });
     }
-}
+    return updatedPlayer;
+  }
 
-
-export async function patchPlayer(newData, id){
-    const playerFind = await  player.findByPk(id);
-    if(!playerFind) throw new Error(`Error the player with ${id} not exists`);
-    try{
-        const updatedPlayer = await playerFind.update(newData);
-        return updatedPlayer;
-    }catch(error){
-        throw new Error(`Error update player: ${error.message}`);
+  async deletePlayer(id) {
+    const playerById = await this.playerRepo.getByIdPlayer(id);
+    if (playerById.isLeft()) {
+      return Either.left({
+        message: `The player with id ${id} does not exist`,
+        statusCode: 404,
+      });
     }
-}
 
-async function encryptPassword(password) {
-  const saltRounds = 10;
-  const hash = await bcrypt.hash(password, saltRounds);
-  return hash;
+    const deleted = await this.playerRepo.deletePlayer(id);
+    if (deleted.isLeft()) {
+      return Either.left({
+        message: "Error deleting player",
+        statusCode: 500,
+      });
+    }
+    return Either.right({ message: "Player deleted successfully" });
+  }
+
+  async patchPlayer(newData, id) {
+    const playerById = await this.playerRepo.getByIdPlayer(id);
+    if (playerById.isLeft()) {
+      return Either.left({
+        message: `The player with id ${id} does not exist`,
+        statusCode: 404,
+      });
+    }
+
+    const updatedPlayer = await this.playerRepo.patchPlayer(newData, id);
+    if (updatedPlayer.isLeft()) {
+      return Either.left({
+        message: "Error updating player",
+        statusCode: 500,
+      });
+    }
+    return updatedPlayer;
+  }
 }

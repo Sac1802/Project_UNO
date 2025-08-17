@@ -1,137 +1,141 @@
-import * as playerService from "../../services/playerService.js";
-import player from "../../models/player.js";
+import { PlayerService } from "../../services/playerService.js";
+import bcrypt from "../../utils/bcrypt.js";
+import Either from "../../utils/Either.js";
 
-jest.mock("../../models/player.js");
+describe("PlayerService", () => {
+  let playerService;
+  let mockPlayerRepository;
 
-describe("playerService", () => {
   beforeEach(() => {
+    mockPlayerRepository = {
+      savePlayer: jest.fn(),
+      getPlayers: jest.fn(),
+      getByIdPlayer: jest.fn(),
+      updateFullPlayer: jest.fn(),
+      deletePlayer: jest.fn(),
+      patchPlayer: jest.fn(),
+    };
+
+    playerService = new PlayerService(mockPlayerRepository);
     jest.clearAllMocks();
   });
 
-  test("should create a player", async () => {
-    player.create.mockResolvedValue({ id: 1, username: "lobo" });
-
+  test("should create a player successfully", async () => {
     const playerData = { username: "lobo", password: "1234" };
-    const createdPlayer = await playerService.savePlayer(playerData);
-    expect(player.create).toHaveBeenCalled();
-    expect(createdPlayer).toHaveProperty(
-      "message",
-      "User registered successfully"
-    );
+    const encryptedPassword = "encrypted1234";
+
+    bcrypt.encryptPassword = jest.fn().mockResolvedValue(encryptedPassword);
+    mockPlayerRepository.savePlayer.mockResolvedValue(Either.right({ id: 1, username: "lobo" }));
+
+    const result = await playerService.savePlayer(playerData);
+
+    expect(bcrypt.encryptPassword).toHaveBeenCalledWith("1234");
+    expect(mockPlayerRepository.savePlayer).toHaveBeenCalledWith({
+      username: "lobo",
+      password: encryptedPassword,
+    });
+    expect(result.isRight()).toBe(true);
+    expect(result.right).toEqual({ message: "User registered successfully" });
   });
 
-  test("should get a player by ID", async () => {
-    player.findByPk.mockResolvedValue({ id: 1, username: "lobo" });
+  test("should return left if player already exists", async () => {
+    const playerData = { username: "lobo", password: "1234" };
+    bcrypt.encryptPassword = jest.fn().mockResolvedValue("encrypted1234");
+    mockPlayerRepository.savePlayer.mockResolvedValue(Either.left(new Error("duplicate key")));
 
-    const playerFound = await playerService.getByIdPlayer(1);
-    expect(playerFound).toHaveProperty("id", 1);
+    const result = await playerService.savePlayer(playerData);
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.getError()).toEqual({
+      message: "User could not be created (maybe already exists)",
+      statusCode: 400,
+    });
   });
 
-  test("should update a player", async () => {
-    const userMock = {
+  test("should get player by ID successfully", async () => {
+    const mockPlayer = { id: 1, username: "lobo" };
+    mockPlayerRepository.getByIdPlayer.mockResolvedValue(Either.right(mockPlayer));
+
+    const result = await playerService.getByIdPlayer(1);
+
+    expect(result.isRight()).toBe(true);
+    expect(result.right).toEqual(mockPlayer);
+    expect(mockPlayerRepository.getByIdPlayer).toHaveBeenCalledWith(1);
+  });
+
+  test("should return left if player not found by ID", async () => {
+    mockPlayerRepository.getByIdPlayer.mockResolvedValue(Either.left(new Error("Not found")));
+
+    const result = await playerService.getByIdPlayer(999);
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.getError()).toEqual({
+      message: "The player with id 999 does not exist",
+      statusCode: 404,
+    });
+  });
+
+  test("should get all players successfully", async () => {
+    const players = [
+      { id: 1, username: "player1" },
+      { id: 2, username: "player2" },
+    ];
+    mockPlayerRepository.getPlayers.mockResolvedValue(Either.right(players));
+
+    const result = await playerService.getPlayers();
+
+    expect(result.isRight()).toBe(true);
+    expect(result.right).toEqual(players);
+    expect(mockPlayerRepository.getPlayers).toHaveBeenCalled();
+  });
+
+  test("should update player successfully", async () => {
+    const newData = { username: "loboUpdated" };
+    mockPlayerRepository.getByIdPlayer.mockResolvedValue(Either.right({ id: 1 }));
+    mockPlayerRepository.updateFullPlayer.mockResolvedValue(Either.right({ id: 1, username: "loboUpdated" }));
+
+    const result = await playerService.updateFullPlayer(newData, 1);
+
+    expect(result.isRight()).toBe(true);
+    expect(result.right).toEqual({ id: 1, username: "loboUpdated" });
+    expect(mockPlayerRepository.updateFullPlayer).toHaveBeenCalledWith(1, newData);
+  });
+
+  test("should delete player successfully", async () => {
+    mockPlayerRepository.getByIdPlayer.mockResolvedValue(Either.right({ id: 1 }));
+    mockPlayerRepository.deletePlayer.mockResolvedValue(Either.right({ message: "Player deleted successfully" }));
+
+    const result = await playerService.deletePlayer(1);
+
+    expect(result.isRight()).toBe(true);
+    expect(result.right).toEqual({ message: "Player deleted successfully" });
+    expect(mockPlayerRepository.deletePlayer).toHaveBeenCalledWith(1);
+  });
+
+  test("should patch player successfully", async () => {
+    const newData = { username: "loboUpdated" };
+    mockPlayerRepository.getByIdPlayer.mockResolvedValue(Either.right({ id: 1 }));
+    mockPlayerRepository.patchPlayer.mockResolvedValue(Either.right({ id: 1, username: "loboUpdated" }));
+
+    const result = await playerService.patchPlayer(newData, 1);
+
+    expect(result.isRight()).toBe(true);
+    expect(result.right.username).toBe("loboUpdated");
+    expect(mockPlayerRepository.patchPlayer).toHaveBeenCalledWith(newData, 1);
+  });
+
+  test("getByIdByToken should return correct fields", async () => {
+    const mockPlayer = { id: 1, username: "lobo", email: "lobo@test.com", age: 25 };
+    mockPlayerRepository.getByIdPlayer.mockResolvedValue(Either.right(mockPlayer));
+
+    const result = await playerService.getByIdByToken(1);
+
+    expect(result.isRight()).toBe(true);
+    expect(result.right).toEqual({
       id: 1,
       username: "lobo",
-      save: jest.fn().mockResolvedValue(true),
-    };
-    player.findByPk.mockResolvedValue(userMock);
-
-    const playerData = { username: "loboUpdated", password: "1234" };
-    const updatedPlayer = await playerService.updateFullPlayer(playerData, 1);
-    expect(userMock.save).toHaveBeenCalled();
-  });
-
-  test("should delete a player", async () => {
-    const userMock = { id: 1, destroy: jest.fn().mockResolvedValue() };
-    player.findByPk.mockResolvedValue(userMock);
-
-    await expect(playerService.deletePlayer(1)).resolves.toBeUndefined();
-    expect(userMock.destroy).toHaveBeenCalled();
-  });
-
-  test("should not delete a player if not found", async () => {
-    player.findByPk.mockResolvedValue(null);
-
-    await expect(playerService.deletePlayer(999)).rejects.toThrow(
-      "Error the player with 999 not exists"
-    );
-  });
-
-  test("should patch a player", async () => {
-    const updatedMock = { id: 1, username: "loboUpdated" };
-    const userMock = {
-      id: 1,
-      update: jest.fn().mockResolvedValue(updatedMock),
-    };
-    player.findByPk.mockResolvedValue(userMock);
-
-    const playerData = { username: "loboUpdated" };
-    const patchedPlayer = await playerService.patchPlayer(playerData, 1);
-    expect(userMock.update).toHaveBeenCalledWith(playerData);
-    expect(patchedPlayer).toHaveProperty("id", 1);
-    expect(patchedPlayer.username).toBe(playerData.username);
-  });
-
-  test("savePlayer should throw error if user already exists", async () => {
-    player.create.mockRejectedValue(new Error("duplicate key"));
-
-    const playerData = { username: "lobo", password: "1234" };
-
-    await expect(playerService.savePlayer(playerData)).rejects.toThrow(
-      "Error: User already exists"
-    );
-  });
-
-  test("getByIdPlayer throws error if user not found", async () => {
-    player.findByPk.mockResolvedValue(null);
-
-    await expect(playerService.getByIdPlayer(999)).rejects.toThrow(
-      "The player with 999 not exists"
-    );
-  });
-
-  test("should throw error if user already exists", async () => {
-    jest
-      .spyOn(player, "create")
-      .mockRejectedValue(new Error("Unique constraint error"));
-    const playerData = { username: "lobo", password: "1234" };
-
-    await expect(playerService.savePlayer(playerData)).rejects.toThrow(
-      "Error: User already exists"
-    );
-  });
-
-  test("getByIdPlayer throws error if player not found", async () => {
-    jest.spyOn(player, "findByPk").mockResolvedValue(null);
-    await expect(playerService.getByIdPlayer(999)).rejects.toThrow(
-      "The player with 999 not exists"
-    );
-  });
-
-  test("getByIdByToken throws error if player not found", async () => {
-    jest.spyOn(player, "findByPk").mockResolvedValue(null);
-    await expect(playerService.getByIdByToken(999)).rejects.toThrow(
-      "The player with 999 not exists"
-    );
-  });
-
-  test("updateFullPlayer throws error if player not found", async () => {
-    jest.spyOn(player, "findByPk").mockResolvedValue(null);
-    await expect(
-      playerService.updateFullPlayer({ username: "x" }, 999)
-    ).rejects.toThrow("Error the player with 999 not exists");
-  });
-
-  test("deletePlayer throws error if player not found", async () => {
-    jest.spyOn(player, "findByPk").mockResolvedValue(null);
-    await expect(playerService.deletePlayer(999)).rejects.toThrow(
-      "Error the player with 999 not exists"
-    );
-  });
-
-  test("patchPlayer throws error if player not found", async () => {
-    jest.spyOn(player, "findByPk").mockResolvedValue(null);
-    await expect(
-      playerService.patchPlayer({ username: "x" }, 999)
-    ).rejects.toThrow("Error the player with 999 not exists");
+      email: "lobo@test.com",
+      age: 25,
+    });
   });
 });

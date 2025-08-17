@@ -35,3 +35,5 @@ temp/
 
 *.tgz
 *.gz
+
+coverage/

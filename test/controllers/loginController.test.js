@@ -1,11 +1,10 @@
-// test/controllers/loginController.test.js
-import * as loginService from '../../services/loginService.js';
 import * as loginController from '../../controllers/loginController.js';
+import { LoginService } from '../../services/loginService.js';
 
 jest.mock('../../services/loginService.js');
 
 describe('loginController', () => {
-  let req, res, next;
+  let req, res, next, mockLoginService;
 
   beforeEach(() => {
     req = { body: {}, headers: {} };
@@ -15,18 +14,23 @@ describe('loginController', () => {
     };
     next = jest.fn();
     jest.clearAllMocks();
+
+    mockLoginService = {
+      loginUser: jest.fn(),
+      logoutUser: jest.fn()
+    };
+    LoginService.mockImplementation(() => mockLoginService);
   });
 
   describe('login', () => {
     it('should return 200 if login is successful', async () => {
       req.body = { username: 'test', password: '123' };
-      const mockResult = {
-        isRight: jest.fn().mockReturnValue(true)
-      };
-      loginService.loginUser.mockResolvedValue(mockResult);
+      const mockResult = { isRight: jest.fn().mockReturnValue(true) };
+      mockLoginService.loginUser.mockResolvedValue(mockResult);
 
       await loginController.login(req, res, next);
 
+      expect(mockLoginService.loginUser).toHaveBeenCalledWith(req.body);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockResult);
     });
@@ -38,7 +42,7 @@ describe('loginController', () => {
         isRight: jest.fn().mockReturnValue(false),
         getError: jest.fn().mockReturnValue(mockError)
       };
-      loginService.loginUser.mockResolvedValue(mockResult);
+      mockLoginService.loginUser.mockResolvedValue(mockResult);
 
       await loginController.login(req, res, next);
 
@@ -48,7 +52,7 @@ describe('loginController', () => {
 
     it('should call next on exception', async () => {
       const err = new Error('Boom');
-      loginService.loginUser.mockRejectedValue(err);
+      mockLoginService.loginUser.mockRejectedValue(err);
 
       await loginController.login(req, res, next);
 
@@ -59,10 +63,11 @@ describe('loginController', () => {
   describe('logout', () => {
     it('should return 200 when logout successful', async () => {
       req.headers.autorization = 'token123';
-      loginService.logoutUser.mockResolvedValue({ success: true });
+      mockLoginService.logoutUser.mockResolvedValue({ success: true });
 
       await loginController.logout(req, res, next);
 
+      expect(mockLoginService.logoutUser).toHaveBeenCalledWith('token123');
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({ success: true });
     });
@@ -70,11 +75,22 @@ describe('loginController', () => {
     it('should call next if logout throws error', async () => {
       const err = new Error('Logout failed');
       req.headers.autorization = 'token123';
-      loginService.logoutUser.mockRejectedValue(err);
+      mockLoginService.logoutUser.mockRejectedValue(err);
 
       await loginController.logout(req, res, next);
 
       expect(next).toHaveBeenCalledWith(err);
+    });
+
+    it('should call logout with undefined if token missing', async () => {
+      req.headers = {}; // no token
+      mockLoginService.logoutUser.mockResolvedValue({ success: true });
+
+      await loginController.logout(req, res, next);
+
+      expect(mockLoginService.logoutUser).toHaveBeenCalledWith(undefined);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ success: true });
     });
   });
 });

@@ -1,82 +1,55 @@
-import card from "../models/cards.js";
+import Either from "../utils/Either";
+export class CardsService {
+  constructor(cardRepo) {
+    this.cardRepo = cardRepo;
+  }
 
+  async createCard(data) {
+    data.isDiscarded = false;
+    const cardSaved = await this.cardRepo.createCard(data);
+    return cardSaved;
+  }
 
-export async function createCard(data){
-    try{
-        data.isDiscarded = false;
-        const cardSaved = await card.create(data);
-        return cardSaved;
-    }catch(error){
-        throw new Error(`Error create card: ${error.message}`);
+  async getAllCards() {
+    const findAllCards = await this.cardRepo.getAllCards();
+    return findAllCards;
+  }
+
+  async getByIdCard(id) {
+    const findById = await this.cardRepo.getByIdCard(id);
+    return findById;
+  }
+
+  async updateAll(newData, id) {
+    const findCard = await this.cardRepo.getByIdCard(id);
+    if (!findCard.isRight()) return findCard;
+    const cardUpdated = await this.cardRepo.updateAll(newData, id);
+    return cardUpdated;
+  }
+
+  async deleteById(id) {
+    const findByIdCard = await this.cardRepo.getByIdCard(id);
+    if (!findByIdCard.isRight()) return findByIdCard;
+    const cardDeleted = await this.cardRepo.deleteById(id);
+    return cardDeleted;
+  }
+
+  async patchCard(newData, id) {
+    const findByIdCard = await this.cardRepo.getByIdCard(id);
+    if (!findByIdCard.isRight()) return findByIdCard; // Return the left result from repository
+    const cardUpdated = await this.cardRepo.patchCard(newData, id);
+    return cardUpdated;
+  }
+
+  async getTopCard(id) {
+    const topCardResult = await this.cardRepo.topCard(id);
+    if (!topCardResult.isRight()) {
+      return topCardResult;
     }
-}
-
-export async function getAllCards() {
-    try{
-        const findAllCards = await card.findAll();
-        return findAllCards;
-    }catch(error){
-        throw new Error(`Error get all cards: ${error.message}`);
-    }
-}
-
-export async function getByIdCard(id) {
-    try{
-        const finById = await card.findByPk(id);
-        if(!finById) throw new Error(`The card with id ${id} does not exist`);
-        return finById;
-    }catch(error){
-        throw new Error(`Error get card by Id: ${error.message}`);
-    }
-}
-
-export async function updateAll(newData,  id) {
-    const findCard = await card.findByPk(id);
-    if(!findCard) throw new Error(`Error can't get card with ${id}`);
-    try{
-        Object.assign(findCard, newData);
-        return await findCard.save();
-    }catch(error){
-        throw new Error(`Error update card: ${error.message}`);
-    }
-}
-
-export async function deleteById(id) {
-    const findByIdCard = await card.findByPk(id);
-    if(!findByIdCard) throw new Error(`Error can't get card with ${id}`);
-    try{
-        await findByIdCard.destroy();
-    }catch(error){
-        throw new Error(`Error delete card: ${error.message}`);
-    }
-}
-
-export async function patchCard(newData, id) {
-    const findByIdCard = await card.findByPk(id);
-    if(!findByIdCard) throw new Error(`Error can't get card with ${id}`);
-    try{
-        const cardUpdated = findByIdCard.update(newData);
-        return cardUpdated;
-    }catch(error){
-        throw new Error(`Error update card: ${error.message}`);
-    }
-}
-
-export async function getTopCrad(id){
-    try{
-        const topCard = await card.findOne({
-            where:{
-                gameId: id,
-                isDiscarded: true
-            },
-            order: [['id', 'DESC']]
-        });
-        if(!topCard) throw new Error('There are no letters in this game');
-        return {
-            game_id: id,
-            top_card: `${topCard.value} of ${topCard.color}`
-        }
-    }catch(error){
-        throw new Error(`Error get top card: ${error.message}`);
-    }
+    const topCard = topCardResult.value;
+    return Either.right({
+      game_id: id,
+      top_card: `${topCard.value} of ${topCard.color}`,
+    });
+  }
 }

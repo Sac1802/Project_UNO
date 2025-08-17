@@ -1,81 +1,112 @@
-import * as scoreService from '../services/scoreService.js'
+import { ScoreService } from "../services/scoreService.js";
+import { ScoreRepository } from "../repository/ScoreRepository.js";
 
+const scoreRepo = new ScoreRepository();
+const scoreService = new ScoreService(scoreRepo);
 
-export async function saveScore(req, res, next){
-    const data = req.body;
-    if(validateInputScore(data)) return res.status(400).json({message : 'All fields must be completed'});
-    try{
-        const scoreSaved = await scoreService.saveScore(data);
-        return res.status(201).json(scoreSaved);
-    }catch(error){
-        next(error);
-    }
+export async function saveScore(req, res, next) {
+  const data = req.body;
+
+  if (validateInputScore(data)) {
+    return res.status(400).json({ error: "All fields must be completed" });
+  }
+
+  const result = await scoreService.saveScore(data);
+
+  if (result.isRight()) {
+    return res.status(201).json(result.value);
+  } else {
+    const err = result.getError();
+    return res.status(err.statusCode || 500).json({ error: err.message });
+  }
 }
 
 export async function getAllScore(req, res, next) {
-    try{
-        const getScore = await scoreService.getAllScore();
-        return res.status(200).json(getScore);
-    }catch(error){
-        next(error);
-    }
+  const result = await scoreService.getAllScore();
+
+  if (result.isRight()) {
+    return res.status(200).json(result.value);
+  } else {
+    const err = result.getError();
+    return res.status(err.statusCode || 404).json({ error: err.message });
+  }
 }
 
-export async function getById(req, res, next){
-    const id = req.params.id;
-    try{
-        const getByIdScore = await scoreService.getById(id);
-        return res.status(200).json(getByIdScore);
-    }catch(error){
-        next(error);
-    }
+export async function getById(req, res, next) {
+  const id = req.params.id;
+  const result = await scoreService.getById(id);
+
+  if (result.isRight()) {
+    return res.status(200).json(result.value);
+  } else {
+    const err = result.getError();
+    return res.status(err.statusCode || 404).json({ error: err.message });
+  }
 }
 
-export async function updateAllScore(req, res, next){
-    const dataUpdated =  req.body;
-    if(validateInputScore(dataUpdated)) return res.status(400).json({message : 'All fields must be completed'});
-    const id = req.params.id;
-    try{
-        const scoreUpdated = await scoreService.updateAll(dataUpdated, id);
-        return res.status(200).json(scoreUpdated);
-    }catch(error){
-        next(error);
-    }
+export async function updateAllScore(req, res, next) {
+  const dataUpdated = req.body;
+  const id = req.params.id;
+
+  if (validateInputScore(dataUpdated)) {
+    return res.status(400).json({ error: "All fields must be completed" });
+  }
+
+  const result = await scoreService.updateAll(dataUpdated, id);
+
+  if (result.isRight()) {
+    return res.status(200).json(result.value);
+  } else {
+    const err = result.getError();
+    return res.status(err.statusCode || 500).json({ error: err.message });
+  }
 }
 
-export async function deleteById(req, res, next){
-    const id = req.params.id;
-    try{
-        await scoreService.deleteById(id);
-        return res.status(204).send();
-    }catch(error){
-        next(error);
-    }
+export async function deleteById(req, res, next) {
+  const id = req.params.id;
+  const result = await scoreService.deleteById(id);
+
+  if (result.isRight()) {
+    return res.status(204).send();
+  } else {
+    const err = result.getError();
+    return res.status(err.statusCode || 500).json({ error: err.message });
+  }
 }
 
-export async function patchScore(req, res, next){
-    const newData = req.body;
-    const id =  req.params.id;
-    try{
-        const newScoreUpdated = await scoreService.patchScore(newData, id);
-        return res.status(200).json(newScoreUpdated);
-    }catch(error){
-        next(error);
-    }
+export async function patchScore(req, res, next) {
+  const newData = req.body;
+  const id = req.params.id;
+
+  const result = await scoreService.patchScore(newData, id);
+
+  if (result.isRight()) {
+    return res.status(200).json(result.value);
+  } else {
+    const err = result.getError();
+    return res.status(err.statusCode || 500).json({ error: err.message });
+  }
 }
 
-export async function getScoreAllPlayer(req, res, next){
-    const { idGame } = req.body;
-    if (!idGame) return res.status(400).json({ message: "Game ID is required" });
-    try{
-        const response = await scoreService.scoreAllPlayers(idGame);
-        return res.status(200).json(response);
-    }catch(error){
-        next(error);
-    }
+export async function getScoreAllPlayer(req, res, next) {
+  const { idGame } = req.body;
+  if (!idGame) {
+    return res.status(400).json({ error: "Game ID is required" });
+  }
+
+  const result = await scoreService.scoreAllPlayers(idGame);
+
+  if (result.isRight()) {
+    return res.status(200).json(result.value);
+  } else {
+    const err = result.getError();
+    return res.status(err.statusCode || 404).json({ error: err.message });
+  }
 }
 
-function validateInputScore(data){
-    return Object.values(data).some(val => 
-        val  === null || val === undefined || val  === '');
+function validateInputScore(data) {
+  if (!data || Object.keys(data).length === 0) return true;
+  return Object.values(data).some(
+    (val) => val === null || val === undefined || val === ""
+  );
 }
