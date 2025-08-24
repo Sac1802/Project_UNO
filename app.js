@@ -6,14 +6,19 @@ import cardRouter from './routes/cardRoutes.js'
 import scroreRouter from './routes/scoreRoutes.js'
 import loginRouter from './routes/loginRoutes.js'
 import matchRouter from './routes/matchRoutes.js'
-import { errorHandler, notFoundHandler } from './middlewares/middleware.js';
+import { eitherLogger } from './middlewares/middleware.js';
 import {verifyToken} from './middlewares/verifyToken.js'
+import {initSocket} from './utils/socket.js';
+import http from 'http';
 
 dotenv.config();
 const app = express();
 const port = process.env.PORT;
 
 app.use(express.json());
+const server = http.createServer(app);
+
+const io = initSocket(server);
 
 const excludedRoutes = [
   '/api/auth/login',
@@ -37,8 +42,7 @@ app.use('/api/scores', scroreRouter);
 app.use('/api/auth', loginRouter);
 app.use('/api/match', matchRouter);
 
-app.use(notFoundHandler);
-app.use(errorHandler);
+app.use(eitherLogger);
 
 app.listen(port, () => {
   console.log(`The server app is listening on port ${port}`);

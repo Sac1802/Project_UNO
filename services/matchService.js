@@ -1,4 +1,5 @@
-import Either from "../utils/Either";
+import Either from "../utils/Either.js";
+import { getIo } from "../utils/socket.js";
 
 export class MatchService {
   constructor(matchRepository, gameRepository) {
@@ -24,7 +25,19 @@ export class MatchService {
         id_player: id_player,
         status: "wait",
       });
-      return Either.right({ message: "User joined the game successfully" });
+      const playersInGame = await this.matchRepository.getPlayers(idGame);
+      const playerNames = playersInGame.map((p) => p.name);
+
+      const io = getIo();
+      io.to(`gmae${idGame}`).emit('PlayerJoined', {
+        message: "User joined the game successfully",
+        players: playerNames
+      })
+
+      return Either.right({
+        message: "User joined the game successfully",
+        players: playerNames,
+      });
     } else {
       return Either.left(
         { message: "The user is already registered for this game" },

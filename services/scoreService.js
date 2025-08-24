@@ -141,14 +141,11 @@ export class ScoreService {
       });
     }
 
-    const scorePlayers = scores.map((p) => ({
-      username: p.player.username,
-      score: p.score,
-    }));
-
-    return Either.right({
-      game_id: idGame,
-      score: scorePlayers,
+    const scoreObject = {};
+    scorePlayers.forEach((p) => {
+      scoreObject[p.username] = p.score;
     });
+
+    return Either.right({ scores: scoreObject });
   }
 }
