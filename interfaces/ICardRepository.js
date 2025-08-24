@@ -1,4 +1,4 @@
-import Either from "../utils/Either";
+import Either from "../utils/Either.js";
 
 export class ICardRepository {
     createCard(data) {new Either.left("Method 'createCard()' must be implemented.");}

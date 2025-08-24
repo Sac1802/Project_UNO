@@ -1,14 +1,14 @@
-export const errorHandler = (err, req, res, next) => {
-  console.error(err.stack);
+import logs from "../utils/logs.js";
 
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Something broke!';
+export const eitherLogger = (req, res, next) => {
+  const json = res.json;
 
-  res.status(statusCode).json({ error: message });
-};
+  res.json = function(body){
+    if(body?.isLeft && body.isLeft()){
+      logs.error(`Either Left: ${body.left}`)
+    }
+    return json.call(this, body);
+  };
 
-
-
-export const notFoundHandler = (req, res) => {
-  res.status(404).send('Not Found');
-};
+  next();
+}

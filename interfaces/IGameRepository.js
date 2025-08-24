@@ -1,4 +1,4 @@
-import Either from "../utils/Either";
+import Either from "../utils/Either.js";
 export class IGameRepository {
     createGame(data) {new Either.left("Method 'createGame()' must be implemented.");}
     getAllGames() {new Either.left("Method 'getAllGames()' must be implemented.");}
