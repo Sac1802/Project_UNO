@@ -69,4 +69,28 @@ export class CardRepository extends ICardRepository {
         }
         return Either.right(topCard);
     }
+
+    async getCardByIdgame(idGame){
+        const cards = await card.findAll({
+            where:{
+                gameId:idGame,
+                isDiscarded:false
+            }
+        });
+        if(cards.length === 0){
+            return Either.left({message:`There are no cards in the game`,statusCode:404})
+        }
+        return Either.right(cards);
+    }
+
+    async updateDiscardCard(idCard){
+        const cardUpdate = await card.update(
+            {isDiscarded:true},
+            {where:{id:idCard}}
+        );
+        if(!cardUpdate){
+            return Either.left({message:`Could not discard the card`,statusCode:500});
+        }
+        return Either.right(cardUpdate);
+    }
 }

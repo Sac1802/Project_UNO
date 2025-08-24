@@ -97,4 +97,14 @@ export class GameRepository extends IGameRepository {
     return Either.right(updatedGame);
   }
 
+  async updateCurrentPlayer(idGame, playerId) {
+    const gameInstance = await this.getById(idGame);
+    if (!gameInstance) {
+      return Either.left({message: "Game not found", statusCode: 404});
+    }
+    gameInstance.current_turn_player_id = playerId;
+    const updatedGame = await gameInstance.save();
+    return Either.right(updatedGame);
+  }
+
 }

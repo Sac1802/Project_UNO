@@ -32,4 +32,6 @@ export class GameUpdateService {
     const gameUpdated = await this.gameRepo.patchGame(gameFind, newData);
     return gameUpdated;
   }
+
+  
 }
