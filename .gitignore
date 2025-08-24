@@ -1,4 +1,5 @@
 node_modules/
+coverage/
 
 logs/
 *.log
@@ -35,5 +36,3 @@ temp/
 
 *.tgz
 *.gz
-
-coverage/

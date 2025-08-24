@@ -1,9 +1,13 @@
+import Either from "../utils/Either";
+
 export class ICardRepository {
-    createCard(data) {throw new Error("Method 'createCard()' must be implemented.");}
-    getAllCards() {throw new Error("Method 'getAllCards()' must be implemented.");}
-    getByIdCard(id, options = {}) {throw new Error("Method 'getByIdCard()' must be implemented.");}
-    updateAll(data, id) {throw new Error("Method 'updateAllCard()' must be implemented.");}
-    deleteById(id) {throw new Error("Method 'deleteById()' must be implemented.");}
-    patchCard(data, id) {throw new Error("Method 'patchCard()' must be implemented.");}
-    topCard(id) {throw new Error("Method 'topCard()' must be implemented.");}  
+    createCard(data) {new Either.left("Method 'createCard()' must be implemented.");}
+    getAllCards() {new Either.left("Method 'getAllCards()' must be implemented.");}
+    getByIdCard(id, options = {}) {new Either.left("Method 'getByIdCard()' must be implemented.");}
+    updateAll(data, id) {new Either.left("Method 'updateAllCard()' must be implemented.");}
+    deleteById(id) {new Either.left("Method 'deleteById()' must be implemented.");}
+    patchCard(data, id) {new Either.left("Method 'patchCard()' must be implemented.");}
+    topCard(id) {new Either.left("Method 'topCard()' must be implemented.");}  
+    getCardByIdgame(idGame){ new Either.left("Method 'getCardByIdgame()' must be implemented.")}
+    updateDiscardCard(idCard) {new Either.left("Method 'updateDiscardCard()' must be implemented.")}
 }
