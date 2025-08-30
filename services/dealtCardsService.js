@@ -260,7 +260,7 @@ export class PlayCarService {
 
     if (sayUno && playerCards.right.cardsPlayer.length === 1) {
       const nextPlayer = await this.getNextPlayer(idGame, idPlayerChallenger);
-
+      this.repoGame.updateCurrentPlayer(idGame, nextPlayer.id);
       return Either.right({
         message: `Challenge successful. ${defender.name} forgot to say UNO and draws 2 cards.`,
         nextPlayer: nextPlayer.name,

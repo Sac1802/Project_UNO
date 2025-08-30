@@ -1,8 +1,12 @@
 import { PlayerService } from "../services/playerService.js";
 import { PlayerRepository } from "../repository/playerRepository.js";
+import { UsageTrackingRepository } from "../repository/usageTrackingRepository.js";
+import { UsageTrackingService } from "../services/usagesTrackingService.js";
 
 const playerRepo = new PlayerRepository();
 const playerService = new PlayerService(playerRepo);
+const usageTrackingRepo = new UsageTrackingRepository();
+const usageTrackingService = new UsageTrackingService(usageTrackingRepo);
 
 export async function createPlayer(req, res, next) {
   const playerData = req.body;
@@ -13,8 +17,12 @@ export async function createPlayer(req, res, next) {
 
   const result = await playerService.savePlayer(playerData);
 
+  usageTrackingService
+    .trackUsage(req, res, result.value.id)
+    .catch((err) => console.error("Error tracking usage:", err));
+
   if (result.isRight()) {
-    return res.status(201).json(result.value);
+    return res.status(201).json(result.value.message);
   } else {
     const err = result.getError();
     return res.status(err.statusCode || 500).json({ error: err.message });

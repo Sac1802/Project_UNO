@@ -25,7 +25,9 @@ describe("PlayerService", () => {
     const encryptedPassword = "encrypted1234";
 
     bcrypt.encryptPassword = jest.fn().mockResolvedValue(encryptedPassword);
-    mockPlayerRepository.savePlayer.mockResolvedValue(Either.right({ id: 1, username: "lobo" }));
+    mockPlayerRepository.savePlayer.mockResolvedValue(
+      Either.right({ id: 1, username: "lobo" })
+    );
 
     const result = await playerService.savePlayer(playerData);
 
@@ -34,14 +36,20 @@ describe("PlayerService", () => {
       username: "lobo",
       password: encryptedPassword,
     });
+
     expect(result.isRight()).toBe(true);
-    expect(result.right).toEqual({ message: "User registered successfully" });
+    expect(result.right).toEqual({
+      message: "User registered successfully",
+      id: 1,
+    });
   });
 
   test("should return left if player already exists", async () => {
     const playerData = { username: "lobo", password: "1234" };
     bcrypt.encryptPassword = jest.fn().mockResolvedValue("encrypted1234");
-    mockPlayerRepository.savePlayer.mockResolvedValue(Either.left(new Error("duplicate key")));
+    mockPlayerRepository.savePlayer.mockResolvedValue(
+      Either.left(new Error("duplicate key"))
+    );
 
     const result = await playerService.savePlayer(playerData);
 
@@ -54,7 +62,9 @@ describe("PlayerService", () => {
 
   test("should get player by ID successfully", async () => {
     const mockPlayer = { id: 1, username: "lobo" };
-    mockPlayerRepository.getByIdPlayer.mockResolvedValue(Either.right(mockPlayer));
+    mockPlayerRepository.getByIdPlayer.mockResolvedValue(
+      Either.right(mockPlayer)
+    );
 
     const result = await playerService.getByIdPlayer(1);
 
@@ -64,7 +74,9 @@ describe("PlayerService", () => {
   });
 
   test("should return left if player not found by ID", async () => {
-    mockPlayerRepository.getByIdPlayer.mockResolvedValue(Either.left(new Error("Not found")));
+    mockPlayerRepository.getByIdPlayer.mockResolvedValue(
+      Either.left(new Error("Not found"))
+    );
 
     const result = await playerService.getByIdPlayer(999);
 
@@ -91,19 +103,30 @@ describe("PlayerService", () => {
 
   test("should update player successfully", async () => {
     const newData = { username: "loboUpdated" };
-    mockPlayerRepository.getByIdPlayer.mockResolvedValue(Either.right({ id: 1 }));
-    mockPlayerRepository.updateFullPlayer.mockResolvedValue(Either.right({ id: 1, username: "loboUpdated" }));
+    mockPlayerRepository.getByIdPlayer.mockResolvedValue(
+      Either.right({ id: 1 })
+    );
+    mockPlayerRepository.updateFullPlayer.mockResolvedValue(
+      Either.right({ id: 1, username: "loboUpdated" })
+    );
 
     const result = await playerService.updateFullPlayer(newData, 1);
 
     expect(result.isRight()).toBe(true);
     expect(result.right).toEqual({ id: 1, username: "loboUpdated" });
-    expect(mockPlayerRepository.updateFullPlayer).toHaveBeenCalledWith(1, newData);
+    expect(mockPlayerRepository.updateFullPlayer).toHaveBeenCalledWith(
+      1,
+      newData
+    );
   });
 
   test("should delete player successfully", async () => {
-    mockPlayerRepository.getByIdPlayer.mockResolvedValue(Either.right({ id: 1 }));
-    mockPlayerRepository.deletePlayer.mockResolvedValue(Either.right({ message: "Player deleted successfully" }));
+    mockPlayerRepository.getByIdPlayer.mockResolvedValue(
+      Either.right({ id: 1 })
+    );
+    mockPlayerRepository.deletePlayer.mockResolvedValue(
+      Either.right({ message: "Player deleted successfully" })
+    );
 
     const result = await playerService.deletePlayer(1);
 
@@ -114,8 +137,12 @@ describe("PlayerService", () => {
 
   test("should patch player successfully", async () => {
     const newData = { username: "loboUpdated" };
-    mockPlayerRepository.getByIdPlayer.mockResolvedValue(Either.right({ id: 1 }));
-    mockPlayerRepository.patchPlayer.mockResolvedValue(Either.right({ id: 1, username: "loboUpdated" }));
+    mockPlayerRepository.getByIdPlayer.mockResolvedValue(
+      Either.right({ id: 1 })
+    );
+    mockPlayerRepository.patchPlayer.mockResolvedValue(
+      Either.right({ id: 1, username: "loboUpdated" })
+    );
 
     const result = await playerService.patchPlayer(newData, 1);
 
@@ -125,8 +152,15 @@ describe("PlayerService", () => {
   });
 
   test("getByIdByToken should return correct fields", async () => {
-    const mockPlayer = { id: 1, username: "lobo", email: "lobo@test.com", age: 25 };
-    mockPlayerRepository.getByIdPlayer.mockResolvedValue(Either.right(mockPlayer));
+    const mockPlayer = {
+      id: 1,
+      username: "lobo",
+      email: "lobo@test.com",
+      age: 25,
+    };
+    mockPlayerRepository.getByIdPlayer.mockResolvedValue(
+      Either.right(mockPlayer)
+    );
 
     const result = await playerService.getByIdByToken(1);
 
