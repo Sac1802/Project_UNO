@@ -1,10 +1,12 @@
 import { Router } from "express";
-import {trackingMiddleware} from "../middlewares/trackingMiddleware.js";
+import TrackingMiddleware from "../middlewares/trackingMiddleware.js";
+
+const tracking = new TrackingMiddleware();
+
 
 import * as controller from '../controllers/usageTrackingController.js';
 
 const router = Router();
-const tracking = new trackingMiddleware();
 
 router.get('/requests', tracking.withTracking(controller.getAllUsages));
 router.get('/response-times', tracking.withTracking(controller.responseTimes));

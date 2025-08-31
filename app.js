@@ -11,15 +11,19 @@ import { eitherLogger } from "./middlewares/middleware.js";
 import { verifyToken } from "./middlewares/verifyToken.js";
 import { initSocket } from "./utils/socket.js";
 import http from "http";
-import { UsageTrackingController } from "./controllers/usageTrackingController.js";
+import responseTime from "response-time";
 
 dotenv.config();
 const app = express();
 const port = process.env.PORT;
-const usageTrackingController = new UsageTrackingController();
 
 app.use(express.json());
 const server = http.createServer(app);
+
+app.use(responseTime((req, res, time) => {
+  res.locals.responseTime = parseFloat(time.toFixed(3));
+}));
+
 
 const io = initSocket(server);
 
@@ -33,11 +37,6 @@ app.use((req, res, next) => {
   verifyToken(req, res, next);
 });
 
-app.use(async (req, res, next) => {
-  const idUser = req.user?.id || null;
-  await usageTrackingController.usageTracking(req, res, idUser);
-  next();
-});
 
 app.use("/api/games", gameRouter);
 app.use("/api/players", playerRouter);

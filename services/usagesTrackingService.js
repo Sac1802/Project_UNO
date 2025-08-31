@@ -1,5 +1,5 @@
 import { request } from "express";
-import Either from "../utils/Either";
+import Either from "../utils/Either.js";
 
 export class UsageTrackingService {
   constructor(usageTrackingRepo) {
@@ -16,39 +16,44 @@ export class UsageTrackingService {
     if (validate.isLeft()) {
       return await this.createUsageTracking(req, res, idUser, request);
     } else {
-      return await this.updateUsageTracking(req, res, validate.value);
+      return await this.updateUsageTracking(req, res, validate.right);
     }
   }
 
   async createUsageTracking(req, res, idUser, request) {
-    const currentTime = parseFloat(res.get("X-Response-Time"));
-    let usageTracking = new UsageTracking();
-    usageTracking.userId = idUser;
-    usageTracking.requestCount = 1;
-    usageTracking.responseTime = {
-      min: currentTime,
-      max: currentTime,
-      avg: currentTime,
+    const currentTime = res.locals.responseTime || 0;
+
+    const usageTracking = {
+      userId: idUser,
+      requestCount: 1,
+      responseTime: {
+        min: currentTime,
+        max: currentTime,
+        avg: currentTime,
+      },
+      endpointAccess: request,
+      requestMethod: req.method,
+      statusCode: res.statusCode,
     };
-    usageTracking.endpointAccess = request;
-    usageTracking.requestMethod = req.method;
-    usageTracking.statusCode = res.statusCode;
 
     return await this.usageTrackingRepo.createUsageTracking(usageTracking);
   }
 
   async updateUsageTracking(req, res, validate) {
-    const currentTime = parseFloat(res.get("X-Response-Time"));
+    const currentTime = res.locals.responseTime || 0;
     validate.requestCount++;
+
+    const oldAvg = validate.responseTime?.avg || 0;
+    const oldMin = validate.responseTime?.min ?? currentTime;
+    const oldMax = validate.responseTime?.max ?? currentTime;
+
     validate.responseTime = {
-      min: Math.min(validate.responseTime.min, currentTime),
-      max: Math.max(validate.responseTime.max, currentTime),
+      min: Math.min(oldMin, currentTime),
+      max: Math.max(oldMax, currentTime),
       avg:
-        (validate.responseTime.avg * (validate.requestCount - 1) +
-          currentTime) /
+        (oldAvg * (validate.requestCount - 1) + currentTime) /
         validate.requestCount,
     };
-
     return await this.usageTrackingRepo.updateUsageTracking(
       validate,
       validate.requestMethod,
@@ -61,13 +66,12 @@ export class UsageTrackingService {
     const findUsages = await this.usageTrackingRepo.getAllUsages();
     if (findUsages.isLeft()) return findUsages;
 
-    const totalRequests = findUsages.value.reduce(
+    const totalRequests = findUsages.right.reduce(
       (acc, usage) => acc + usage.requestCount,
       0
     );
-
     const breakdown = {};
-    findUsages.value.forEach((usage) => {
+    findUsages.right.forEach((usage) => {
       if (!breakdown[usage.endpointAccess]) {
         breakdown[usage.endpointAccess] = {};
       }
@@ -90,14 +94,17 @@ export class UsageTrackingService {
     const findUsages = await this.usageTrackingRepo.getAllUsages();
     if (findUsages.isLeft()) return findUsages;
 
-    const times = findUsages.value.map((usage) => [
-      usage.endpointAccess,
-      {
-        avg: usage.responseTime.avg.toFixed(2),
-        min: usage.responseTime.min.toFixed(2),
-        max: usage.responseTime.max.toFixed(2),
-      },
-    ]);
+    const times = findUsages.right.map((usage) => {
+      const rt = JSON.parse(usage.responseTime);
+      return [
+        usage.endpointAccess,
+        {
+          avg: rt.avg !== null ? rt.avg.toFixed(3) : null,
+          min: rt.min !== null ? rt.min.toFixed(3) : null,
+          max: rt.max !== null ? rt.max.toFixed(3) : null,
+        },
+      ];
+    });
 
     return Either.right(Object.fromEntries(times));
   }
@@ -107,7 +114,7 @@ export class UsageTrackingService {
     if (findUsages.isLeft()) return findUsages;
 
     const statusCodes = {};
-    findUsages.value.forEach((usage) => {
+    findUsages.right.forEach((usage) => {
       if (!statusCodes[usage.statusCode]) statusCodes[usage.statusCode] = 0;
       statusCodes[usage.statusCode] += usage.requestCount;
     });
@@ -119,7 +126,7 @@ export class UsageTrackingService {
     const findUsages = await this.usageTrackingRepo.getAllUsages();
     if (findUsages.isLeft()) return findUsages;
 
-    const topUsages = findUsages.value
+    const topUsages = findUsages.right
       .sort((a, b) => b.requestCount - a.requestCount)
       .map((usage) => ({
         endpoint: usage.endpointAccess,

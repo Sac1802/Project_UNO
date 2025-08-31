@@ -1,10 +1,11 @@
 import { Router } from "express";
 import * as playerController from '../controllers/playerController.js';
-import trackingMiddleware from '../middlewares/trackingMiddleware.js';
+import TrackingMiddleware from "../middlewares/trackingMiddleware.js";
+
+const tracking = new TrackingMiddleware();
+
 
 const router = Router();
-const tracking = new trackingMiddleware();
-
 router.get('/token', tracking.withTracking(playerController.getPlayerByToken));
 router.post('/', tracking.withTracking(playerController.createPlayer));
 router.get('/', tracking.withTracking(playerController.getPlayers));

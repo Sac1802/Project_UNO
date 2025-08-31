@@ -22,8 +22,7 @@ export class LoginService {
       err.statusCode = 400;
       throw err;
     }
-
-    const matchPassword = await bcrypt.compare(password, findUser.password);
+    const matchPassword = await bcrypt.comparePasswords(password, findUser.right.password);
     if (!matchPassword) {
       const err = new Error("Invalid Credentials");
       err.name = "AuthError";
@@ -31,7 +30,7 @@ export class LoginService {
       throw err;
     }
 
-    const token = await generateToken(findUser.id);
+    const token = await generateToken(findUser.right.id);
     return Either.right({ access_token: token });
   }
 

@@ -1,9 +1,11 @@
 import { Router } from "express";
 import * as matchController from '../controllers/matchController.js'
-import trackingMiddleware from '../middlewares/trackingMiddleware.js';
+import TrackingMiddleware from "../middlewares/trackingMiddleware.js";
+
+const tracking = new TrackingMiddleware();
+
 
 const router = Router();
-const tracking = new trackingMiddleware();
 
 router.post('/', tracking.withTracking(matchController.saveMatch));
 router.patch('/join', tracking.withTracking(matchController.changeStatusUser));

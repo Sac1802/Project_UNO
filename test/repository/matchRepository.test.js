@@ -10,6 +10,8 @@ jest.mock('../../models/player.js', () => ({}));
 
 import { MatchRepository } from '../../repository/matchRepository.js';
 import match from '../../models/match.js';
+import Either from '../../utils/Either.js';
+import player from '../../models/player.js';
 
 describe('MatchRepository', () => {
   let repository;
@@ -27,7 +29,8 @@ describe('MatchRepository', () => {
 
       const result = await repository.saveUserMatch(mockData);
       expect(match.create).toHaveBeenCalledWith(mockData);
-      expect(result).toEqual(mockReturn);
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse()).toEqual(mockReturn);
     });
   });
 
@@ -40,7 +43,8 @@ describe('MatchRepository', () => {
       expect(match.update).toHaveBeenCalledWith(newData, {
         where: { id_game: 1, id_player: 2 },
       });
-      expect(result).toEqual([1]);
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse()).toEqual([1]);
     });
   });
 
@@ -53,7 +57,8 @@ describe('MatchRepository', () => {
       expect(match.update).toHaveBeenCalledWith(newData, {
         where: { id_game: 1 },
       });
-      expect(result).toEqual([3]);
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse()).toEqual([3]);
     });
   });
 
@@ -70,7 +75,8 @@ describe('MatchRepository', () => {
           attributes: ['username'],
         },
       });
-      expect(result).toEqual(mockPlayers);
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse()).toEqual(mockPlayers);
     });
   });
 
@@ -83,7 +89,8 @@ describe('MatchRepository', () => {
       expect(match.findOne).toHaveBeenCalledWith({
         where: { id_game: 1, id_player: 2 },
       });
-      expect(result).toEqual(mockMatch);
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse()).toEqual(mockMatch);
     });
   });
 
@@ -95,7 +102,8 @@ describe('MatchRepository', () => {
       expect(match.count).toHaveBeenCalledWith({
         where: { id_game: 1 },
       });
-      expect(result).toBe(5);
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse()).toBe(5);
     });
   });
 
@@ -108,7 +116,8 @@ describe('MatchRepository', () => {
       expect(match.findAll).toHaveBeenCalledWith({
         where: { id_game: 1 },
       });
-      expect(result).toEqual(mockMatches);
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse()).toEqual(mockMatches);
     });
   });
 });

@@ -18,11 +18,11 @@ export async function createPlayer(req, res, next) {
   const result = await playerService.savePlayer(playerData);
 
   usageTrackingService
-    .trackUsage(req, res, result.value.id)
+    .trackUsage(req, res, result.right.id)
     .catch((err) => console.error("Error tracking usage:", err));
 
   if (result.isRight()) {
-    return res.status(201).json(result.value.message);
+    return res.status(201).json(result.right.message);
   } else {
     const err = result.getError();
     return res.status(err.statusCode || 500).json({ error: err.message });

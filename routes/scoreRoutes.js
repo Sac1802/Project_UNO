@@ -1,9 +1,11 @@
 import { Router } from "express";
 import * as scoreController from '../controllers/scoreController.js';
-import trackingMiddleware from '../middlewares/trackingMiddleware.js';
+import TrackingMiddleware from "../middlewares/trackingMiddleware.js";
+
+const tracking = new TrackingMiddleware();
+
 
 const router = Router();
-const tracking = new trackingMiddleware();
 
 router.get('/score', tracking.withTracking(scoreController.getScoreAllPlayer));
 router.post('/', tracking.withTracking(scoreController.saveScore));

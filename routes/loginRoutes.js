@@ -1,5 +1,8 @@
 import { Router } from "express";
-import { trackingMiddleware } from "../middlewares/trackingMiddleware.js";
+import TrackingMiddleware from "../middlewares/trackingMiddleware.js";
+
+const trackingMiddleware = new TrackingMiddleware();
+
 import * as loginController from '../controllers/loginController.js';
 
 const router = Router();

@@ -17,11 +17,11 @@ export class GameRepository extends IGameRepository {
   }
 
   async getById(id, options = {}) {
-    const game = await game.findByPk(id, options);
-    if (!game) {
+    const gameInstance = await game.findByPk(id, options);
+    if (!gameInstance) {
       return Either.left({message: "Game not found", statusCode: 404});
     }
-    return Either.right(game);
+    return Either.right(gameInstance);
   }
 
   async updateAllGame(data, id) {

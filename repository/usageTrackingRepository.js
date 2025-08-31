@@ -1,5 +1,5 @@
 import { IUsageTracking } from "../interfaces/IUsageTracking.js";
-import { UsageTracking } from "../models/usageTracking.js";
+import UsageTracking from "../models/usageTracking.js";
 import Either from "../utils/Either.js";
 
 export class UsageTrackingRepository extends IUsageTracking {
@@ -37,7 +37,7 @@ export class UsageTrackingRepository extends IUsageTracking {
   }
 
   async updateUsageTracking(usageTracking, method, request, idUser) {
-    const updatedUsageTracking = await UsageTracking.update(usageTracking, {
+    const updatedUsageTracking = await UsageTracking.findOne({
       where: {
         userId: idUser,
         endpointAccess: request,
@@ -50,6 +50,9 @@ export class UsageTrackingRepository extends IUsageTracking {
         statusCode: 404,
       });
     }
+    Object.assign(updatedUsageTracking, usageTracking);
+
+    await updatedUsageTracking.save();
     return Either.right(updatedUsageTracking);
   }
 
