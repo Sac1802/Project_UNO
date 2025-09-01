@@ -7,7 +7,8 @@ export class PlayCarService {
     repoCards,
     repoPlayer,
     repoCardsPlayer,
-    repoTurnHis
+    repoTurnHis,
+    repoOrder
   ) {
     this.repoGame = repoGame;
     this.repoMacher = repoMacher;
@@ -15,6 +16,7 @@ export class PlayCarService {
     this.repoPlayer = repoPlayer;
     this.repoCardsPlayer = repoCardsPlayer;
     this.repoTurnHis = repoTurnHis;
+    this.repoOrder = repoOrder;
   }
 
   async dealtCard(gameId, maxCardsPerPlayer) {
@@ -159,7 +161,14 @@ export class PlayCarService {
   }
 
   async getNextPlayer(idGame, actualPlayerId) {
-    const players = await this.repoMacher.getPlayers(idGame);
+    const curretOrder = await this.repoOrder.getOrdersByGame(idGame);
+    const players = null;
+    if (curretOrder.right.order === "clockwise") {
+      players = await this.repoMacher.getPlayersAsc(idGame);
+    }else{
+      players = await this.repoMacher.getPlayersDesc(idGame);
+    }
+
     const currentIndex = players.findIndex((p) => p.id === actualPlayerId);
     return players[(currentIndex + 1) % players.length];
   }

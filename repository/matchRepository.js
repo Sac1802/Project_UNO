@@ -63,6 +63,59 @@ export class MatchRepository extends IMatchRepository {
     return Either.right(players);
   }
 
+  async getPlayersAsc(idGame) {
+    const players = await match.findAll({
+      where: { id_game: idGame },
+      order: [["turn", "ASC"]],
+      include: {
+        model: player,
+        attributes: ["username"],
+      },
+    });
+    if (!players || players.length === 0) {
+      return Either.left({
+        message: `No players found for game ${idGame}`,
+        statusCode: 404,
+      });
+    }
+    return Either.right(players);
+  }
+
+  async getPlayersDesc(idGame) {
+    const players = await match.findAll({
+      where: { id_game: idGame },
+      order: [["turn", "DESC"]],
+      include: {
+        model: player,
+        attributes: ["username"],
+      },
+    });
+    if (!players || players.length === 0) {
+      return Either.left({
+        message: `No players found for game ${idGame}`,
+        statusCode: 404,
+      });
+    }
+    return Either.right(players);
+  }
+
+  async getPlayersId(idGame) {
+    const players = await match.findAll({
+      where: { id_game: idGame },
+      include: {
+        model: player,
+        attributes: ["id", "username"],
+      },
+    });
+    if (!players || players.length === 0) {
+      return Either.left({
+        message: `No players found for game ${idGame}`,
+        statusCode: 404,
+      });
+    }
+    return Either.right(players);
+  }
+
   async findOne(idGame, idPlayer) {
     const playerMatch = await match.findOne({
       where: {

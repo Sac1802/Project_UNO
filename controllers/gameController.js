@@ -6,9 +6,11 @@ import * as matchController from "./matchController.js";
 import { GameRepository } from "../repository/gameRepository.js";
 import { CardRepository } from "../repository/CardRepository.js";
 import { CardCreateAuto } from "../services/cardCreateAuto.js";
+import { OrderGameRepository } from "../repository/OrderGameRepoository.js";
 
 const gameRepository = new GameRepository();
 const cardRepository = new CardRepository();
+const orderGameRepository = new OrderGameRepository();
 const gameCreateService = new GameCreationService(gameRepository);
 const gameGetService = new GameGetService(gameRepository);
 const gameUpdateService = new GameUpdateService(gameRepository);
@@ -24,6 +26,7 @@ export async function createGame(req, res, next) {
   if (response.isRight()) {
     const gameCreated = response.value;
     await createCardAuto.saveCardsAuto(gameCreated.game_id);
+    await orderGameRepository.saveOrderGame(gameCreated.game_id, "clockwise");
     return res.status(201).json(gameCreated);
   } else {
     const err = response.getError();
