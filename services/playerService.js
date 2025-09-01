@@ -18,7 +18,10 @@ export class PlayerService {
         statusCode: 400,
       });
     }
-    return Either.right({ message: "User registered successfully" });
+    return Either.right({
+      message: "User registered successfully",
+      id: savedPlayer.right.id,
+    });
   }
 
   async getPlayers() {

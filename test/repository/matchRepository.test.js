@@ -1,4 +1,4 @@
-jest.mock('../../models/match.js', () => ({
+jest.mock("../../models/match.js", () => ({
   create: jest.fn(),
   update: jest.fn(),
   findAll: jest.fn(),
@@ -6,12 +6,14 @@ jest.mock('../../models/match.js', () => ({
   count: jest.fn(),
 }));
 
-jest.mock('../../models/player.js', () => ({}));
+jest.mock("../../models/player.js", () => ({}));
 
-import { MatchRepository } from '../../repository/matchRepository.js';
-import match from '../../models/match.js';
+import { MatchRepository } from "../../repository/matchRepository.js";
+import match from "../../models/match.js";
+import Either from "../../utils/Either.js";
+import player from "../../models/player.js";
 
-describe('MatchRepository', () => {
+describe("MatchRepository", () => {
   let repository;
 
   beforeEach(() => {
@@ -19,47 +21,50 @@ describe('MatchRepository', () => {
     jest.clearAllMocks();
   });
 
-  describe('saveUserMatch', () => {
-    test('should create a new match', async () => {
+  describe("saveUserMatch", () => {
+    test("should create a new match", async () => {
       const mockData = { id_game: 1, id_player: 1 };
       const mockReturn = { id: 1, ...mockData };
       match.create.mockResolvedValue(mockReturn);
 
       const result = await repository.saveUserMatch(mockData);
       expect(match.create).toHaveBeenCalledWith(mockData);
-      expect(result).toEqual(mockReturn);
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse()).toEqual(mockReturn);
     });
   });
 
-  describe('changeStatus', () => {
-    test('should update the status for a specific player', async () => {
-      const newData = { status: 'active' };
+  describe("changeStatus", () => {
+    test("should update the status for a specific player", async () => {
+      const newData = { status: "active" };
       match.update.mockResolvedValue([1]);
 
       const result = await repository.changeStatus(newData, 1, 2);
       expect(match.update).toHaveBeenCalledWith(newData, {
         where: { id_game: 1, id_player: 2 },
       });
-      expect(result).toEqual([1]);
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse()).toEqual([1]);
     });
   });
 
-  describe('changeStatusAllPlayers', () => {
-    test('should update status for all players in a game', async () => {
-      const newData = { status: 'finished' };
+  describe("changeStatusAllPlayers", () => {
+    test("should update status for all players in a game", async () => {
+      const newData = { status: "finished" };
       match.update.mockResolvedValue([3]);
 
       const result = await repository.changeStatusAllPlayers(newData, 1);
       expect(match.update).toHaveBeenCalledWith(newData, {
         where: { id_game: 1 },
       });
-      expect(result).toEqual([3]);
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse()).toEqual([3]);
     });
   });
 
-  describe('getPlayers', () => {
-    test('should return all players for a game', async () => {
-      const mockPlayers = [{ id: 1, player: { username: 'Alice' } }];
+  describe("getPlayers", () => {
+    test("should return all players for a game", async () => {
+      const mockPlayers = [{ id: 1, player: { username: "Alice" } }];
       match.findAll.mockResolvedValue(mockPlayers);
 
       const result = await repository.getPlayers(1);
@@ -67,15 +72,16 @@ describe('MatchRepository', () => {
         where: { id_game: 1 },
         include: {
           model: player,
-          attributes: ['username'],
+          attributes: ["username"],
         },
       });
-      expect(result).toEqual(mockPlayers);
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse()).toEqual(mockPlayers);
     });
   });
 
-  describe('findOne', () => {
-    test('should return a specific match', async () => {
+  describe("findOne", () => {
+    test("should return a specific match", async () => {
       const mockMatch = { id: 1, id_game: 1, id_player: 2 };
       match.findOne.mockResolvedValue(mockMatch);
 
@@ -83,24 +89,26 @@ describe('MatchRepository', () => {
       expect(match.findOne).toHaveBeenCalledWith({
         where: { id_game: 1, id_player: 2 },
       });
-      expect(result).toEqual(mockMatch);
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse()).toEqual(mockMatch);
     });
   });
 
-  describe('count', () => {
-    test('should return the number of matches in a game', async () => {
+  describe("count", () => {
+    test("should return the number of matches in a game", async () => {
       match.count.mockResolvedValue(5);
 
       const result = await repository.count(1);
       expect(match.count).toHaveBeenCalledWith({
         where: { id_game: 1 },
       });
-      expect(result).toBe(5);
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse()).toBe(5);
     });
   });
 
-  describe('listUser', () => {
-    test('should list all matches for a game', async () => {
+  describe("listUser", () => {
+    test("should list all matches for a game", async () => {
       const mockMatches = [{ id: 1 }, { id: 2 }];
       match.findAll.mockResolvedValue(mockMatches);
 
@@ -108,7 +116,79 @@ describe('MatchRepository', () => {
       expect(match.findAll).toHaveBeenCalledWith({
         where: { id_game: 1 },
       });
-      expect(result).toEqual(mockMatches);
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse()).toEqual(mockMatches);
+    });
+  });
+
+  describe("getPlayersAsc", () => {
+    test("should return players ordered by turn ascending", async () => {
+      const mockPlayers = [
+        { turn: 1, player: { username: "Alice" } },
+        { turn: 2, player: { username: "Bob" } },
+      ];
+      match.findAll.mockResolvedValue(mockPlayers);
+
+      const result = await repository.getPlayersAsc(1);
+      expect(match.findAll).toHaveBeenCalledWith({
+        where: { id_game: 1 },
+        order: [["turn", "ASC"]],
+        include: { model: player, attributes: ["username"] },
+      });
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse()).toEqual(mockPlayers);
+    });
+
+    test("should return left if no players found", async () => {
+      match.findAll.mockResolvedValue([]);
+      const result = await repository.getPlayersAsc(1);
+      expect(result.isLeft()).toBe(true);
+    });
+  });
+
+  describe("getPlayersDesc", () => {
+    test("should return players ordered by turn descending", async () => {
+      const mockPlayers = [
+        { turn: 2, player: { username: "Bob" } },
+        { turn: 1, player: { username: "Alice" } },
+      ];
+      match.findAll.mockResolvedValue(mockPlayers);
+
+      const result = await repository.getPlayersDesc(1);
+      expect(match.findAll).toHaveBeenCalledWith({
+        where: { id_game: 1 },
+        order: [["turn", "DESC"]],
+        include: { model: player, attributes: ["username"] },
+      });
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse()).toEqual(mockPlayers);
+    });
+
+    test("should return left if no players found", async () => {
+      match.findAll.mockResolvedValue([]);
+      const result = await repository.getPlayersDesc(1);
+      expect(result.isLeft()).toBe(true);
+    });
+  });
+
+  describe("getPlayersId", () => {
+    test("should return players with their ids", async () => {
+      const mockPlayers = [{ id: 1, player: { username: "Alice" } }];
+      match.findAll.mockResolvedValue(mockPlayers);
+
+      const result = await repository.getPlayersId(1);
+      expect(match.findAll).toHaveBeenCalledWith({
+        where: { id_game: 1 },
+        include: { model: player, attributes: ["id", "username"] },
+      });
+      expect(result.isRight()).toBe(true);
+      expect(result.getOrElse()).toEqual(mockPlayers);
+    });
+
+    test("should return left if no players found", async () => {
+      match.findAll.mockResolvedValue([]);
+      const result = await repository.getPlayersId(1);
+      expect(result.isLeft()).toBe(true);
     });
   });
 });

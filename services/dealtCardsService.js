@@ -7,7 +7,8 @@ export class PlayCarService {
     repoCards,
     repoPlayer,
     repoCardsPlayer,
-    repoTurnHis
+    repoTurnHis,
+    repoOrder
   ) {
     this.repoGame = repoGame;
     this.repoMacher = repoMacher;
@@ -15,6 +16,7 @@ export class PlayCarService {
     this.repoPlayer = repoPlayer;
     this.repoCardsPlayer = repoCardsPlayer;
     this.repoTurnHis = repoTurnHis;
+    this.repoOrder = repoOrder;
   }
 
   async dealtCard(gameId, maxCardsPerPlayer) {
@@ -159,7 +161,14 @@ export class PlayCarService {
   }
 
   async getNextPlayer(idGame, actualPlayerId) {
-    const players = await this.repoMacher.getPlayers(idGame);
+    const curretOrder = await this.repoOrder.getOrdersByGame(idGame);
+    const players = null;
+    if (curretOrder.right.order === "clockwise") {
+      players = await this.repoMacher.getPlayersAsc(idGame);
+    }else{
+      players = await this.repoMacher.getPlayersDesc(idGame);
+    }
+
     const currentIndex = players.findIndex((p) => p.id === actualPlayerId);
     return players[(currentIndex + 1) % players.length];
   }
@@ -260,7 +269,7 @@ export class PlayCarService {
 
     if (sayUno && playerCards.right.cardsPlayer.length === 1) {
       const nextPlayer = await this.getNextPlayer(idGame, idPlayerChallenger);
-
+      this.repoGame.updateCurrentPlayer(idGame, nextPlayer.id);
       return Either.right({
         message: `Challenge successful. ${defender.name} forgot to say UNO and draws 2 cards.`,
         nextPlayer: nextPlayer.name,
