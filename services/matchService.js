@@ -18,18 +18,17 @@ export class MatchService {
     }
 
     const findUser = await this.matchRepository.findOne(idGame, id_player);
-
-    if (!findUser) {
+    if (findUser.isLeft()) {
       await this.matchRepository.saveUserMatch({
         id_game: idGame,
         id_player: id_player,
         status: "wait",
       });
       const playersInGame = await this.matchRepository.getPlayers(idGame);
-      const playerNames = playersInGame.map((p) => p.name);
+      const playerNames = playersInGame.right.map((p) => p.name);
 
       const io = getIo();
-      io.to(`gmae${idGame}`).emit('PlayerJoined', {
+      io.to(`game${idGame}`).emit('PlayerJoined', {
         message: "User joined the game successfully",
         players: playerNames
       })

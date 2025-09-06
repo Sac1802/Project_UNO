@@ -74,7 +74,7 @@ export class RulesService {
     const currentPlayer = await this.gameRepo.getCurrentPlayer(idGame);
     if (currentPlayer.isLeft()) return currentPlayer;
     const orderPlayers = await this.orderRepo.getOrdersByGame(idGame);
-    const order = orderPlayers.right.order;
+    const order = orderPlayers.right.order_game;
 
     let newDirection;
     let playersInGame;

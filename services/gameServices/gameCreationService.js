@@ -1,4 +1,5 @@
 import { limitTimeGame } from "../../plugins/gameLimit.js";
+import Either from "../../utils/Either.js";
 
 export class GameCreationService {
   constructor(gameRepo) {
@@ -9,10 +10,10 @@ export class GameCreationService {
     dataGame.game_owner = id_owner;
     dataGame.current_turn_player_id = id_owner;
     const createdGame = await this.gameRepo.createGame(dataGame);
-    return {
+    return Either.right({
       message: "Game created successfully",
       game_id: createdGame.id,
-    };
+    });
   }
 
   async gameFast(data, id_owner) {

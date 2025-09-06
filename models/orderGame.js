@@ -9,7 +9,7 @@ const OrderGame = sequelize.define(
       autoIncrement: true,
       primaryKey: true,
     },
-    order: {
+    order_game: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -19,6 +19,7 @@ const OrderGame = sequelize.define(
     },
   },
   {
+    tableName: "order_game",
     timestamps: true,
     updatedAt: false,
   }

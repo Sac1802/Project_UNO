@@ -11,7 +11,7 @@ export class GameRepository extends IGameRepository {
   async getAllGames() {
     const games = await game.findAll();
     if (!games || games.length === 0) {
-      return Either.left({message: "No games found", statusCode: 500});
+      return Either.left({ message: "No games found", statusCode: 500 });
     }
     return Either.right(games);
   }
@@ -19,7 +19,7 @@ export class GameRepository extends IGameRepository {
   async getById(id, options = {}) {
     const gameInstance = await game.findByPk(id, options);
     if (!gameInstance) {
-      return Either.left({message: "Game not found", statusCode: 404});
+      return Either.left({ message: "Game not found", statusCode: 404 });
     }
     return Either.right(gameInstance);
   }
@@ -27,7 +27,7 @@ export class GameRepository extends IGameRepository {
   async updateAllGame(data, id) {
     const gameInstance = await this.getById(id);
     if (!gameInstance) {
-      return Either.left({message: "Game not found", statusCode: 404});
+      return Either.left({ message: "Game not found", statusCode: 404 });
     }
     Object.assign(gameInstance, data);
     const updatedGame = await gameInstance.save();
@@ -37,7 +37,7 @@ export class GameRepository extends IGameRepository {
   async deleteById(id) {
     const deletedCount = await game.destroy({ where: { id } });
     if (deletedCount === 0) {
-      return Either.left({message: "Game not found", statusCode: 404});
+      return Either.left({ message: "Game not found", statusCode: 404 });
     }
     return Either.right("Game deleted successfully");
   }
@@ -45,7 +45,7 @@ export class GameRepository extends IGameRepository {
   async patchGame(data, id) {
     const gameInstance = await this.getById(id);
     if (!gameInstance) {
-      return Either.left({message: "Game not found", statusCode: 404});
+      return Either.left({ message: "Game not found", statusCode: 404 });
     }
     const updatedGame = await gameInstance.update(data);
     return Either.right(updatedGame);
@@ -54,35 +54,47 @@ export class GameRepository extends IGameRepository {
   async gameFast(data) {
     const gameFastInstance = await gameFast.create(data);
     if (!gameFastInstance) {
-      return Either.left({message: "Game fast creation failed", statusCode: 500});
+      return Either.left({
+        message: "Game fast creation failed",
+        statusCode: 500,
+      });
     }
     return Either.right(gameFastInstance);
   }
 
   async startGame(data, idGame) {
-    const gameInstance = await this.getById(idGame);
-    if (!gameInstance) {
-      return Either.left({message: "Game not found", statusCode: 404});
+    const result = await this.getById(idGame);
+
+    if (result.isLeft()) {
+      return Either.left({ message: "Game not found", statusCode: 404 });
     }
-    Object.assign(gameInstance, data);
+
+    const gameInstance = result.right;
+
+    gameInstance.status = data.right.status;
     await gameInstance.save();
-    return Either.right('Game started successfully');
+
+    return Either.right("Game started successfully");
   }
 
   async endGame(data, idGame) {
-    const gameInstance = await this.getById(idGame);
-    if (!gameInstance) {
-      return Either.left({message: "Game not found", statusCode: 404});
+    const result = await this.getById(idGame);
+
+    if (result.isLeft()) {
+      return Either.left({ message: "Game not found", statusCode: 404 });
     }
-    Object.assign(gameInstance, data);
+
+    const gameInstance = result.right;
+
+    gameInstance.status = data.right.status;
     await gameInstance.save();
-    return Either.right('Game ended successfully');
+    return Either.right("Game ended successfully");
   }
 
-  async getCurrentPlayer(idGame){
+  async getCurrentPlayer(idGame) {
     const gameInstance = await this.getById(idGame);
     if (!gameInstance) {
-      return Either.left({message: "Game not found", statusCode: 404});
+      return Either.left({ message: "Game not found", statusCode: 404 });
     }
     return Either.right(gameInstance.current_turn_player_id);
   }
@@ -90,7 +102,7 @@ export class GameRepository extends IGameRepository {
   async startGameWithTimeLimit(data, idGame) {
     const gameInstance = await this.getById(idGame);
     if (!gameInstance) {
-      return Either.left({message: "Game not found", statusCode: 404});
+      return Either.left({ message: "Game not found", statusCode: 404 });
     }
     Object.assign(gameInstance, data);
     const updatedGame = await gameInstance.save();
@@ -100,11 +112,10 @@ export class GameRepository extends IGameRepository {
   async updateCurrentPlayer(idGame, playerId) {
     const gameInstance = await this.getById(idGame);
     if (!gameInstance) {
-      return Either.left({message: "Game not found", statusCode: 404});
+      return Either.left({ message: "Game not found", statusCode: 404 });
     }
     gameInstance.current_turn_player_id = playerId;
     const updatedGame = await gameInstance.save();
     return Either.right(updatedGame);
   }
-
 }

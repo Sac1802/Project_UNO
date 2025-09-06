@@ -19,12 +19,12 @@ const createCardAuto = new CardCreateAuto(cardRepository);
 
 export async function createGame(req, res, next) {
   const dataGame = req.body;
-  const user = req.user.playe;
+  const user = req.user.playerId;
   if (validateInputGame(dataGame))
     return res.status(400).json({ message: "All fields must be completed" });
   const response = await gameCreateService.createGame(dataGame, user);
   if (response.isRight()) {
-    const gameCreated = response.value;
+    const gameCreated = response.right;
     await createCardAuto.saveCardsAuto(gameCreated.game_id);
     await orderGameRepository.saveOrderGame(gameCreated.game_id, "clockwise");
     return res.status(201).json(gameCreated);
@@ -99,7 +99,7 @@ export async function startGame(req, res, next) {
   if (!idGame) return res.status(400).json({ message: "Game ID is required" });
   const response = await gameStatusService.startGame(idGame, dataUser);
   if (response.isRight()) {
-    await matchController.startGame(idGame, dataUser, next);
+    await matchController.startGameController(idGame,dataUser, next);
     return res.status(200).json(response);
   } else {
     const err = response.getError();

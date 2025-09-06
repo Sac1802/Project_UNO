@@ -4,7 +4,7 @@ import Either from "../utils/Either.js";
 
 export class OrderGameRepository extends IOrderGame {
   async saveOrderGame(idGame, type) {
-    return await OrderGame.create({ id_game: idGame, order: type });
+    return await OrderGame.create({ id_game: idGame, order_game: type });
   }
 
   async getOrdersByGame(idGame) {
@@ -20,7 +20,7 @@ export class OrderGameRepository extends IOrderGame {
   async updateOrderGame(idGame, order) {
     try{
         const updatedOrder = await OrderGame.update(
-            {order},
+            {order_game},
             {where:{id_game:idGame}}
           );
           console.log(updatedOrder);
