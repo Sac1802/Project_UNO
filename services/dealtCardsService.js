@@ -27,30 +27,32 @@ export class PlayCarService {
     const cardsMap = validation.right.cardsMap;
     const players = await this.repoMacher.getPlayers(gameId);
 
-    for (const player of players) {
-      const playerData = await this.repoPlayer.getByIdPlayer(player.id_player);
-      let deckPlayers = [];
+    await Promise.all(
+      players.map(async (player) => {
+        const playerData = await this.repoPlayer.getByIdPlayer(player.id);
+        let deckPlayers = [];
 
-      const result = await this.createDeckPerPlayer(
-        cardsMap,
-        maxCardsPerPlayer,
-        playerData.name,
-        deckPlayers
-      );
+        const result = await this.createDeckPerPlayer(
+          cardsMap,
+          maxCardsPerPlayer,
+          playerData.name,
+          deckPlayers
+        );
 
-      const deckPerPlayer = {
-        player: result.player,
-        cards: result.cards,
-      };
+        const deckPerPlayer = {
+          player: result.player,
+          cards: result.cards,
+        };
 
-      await this.repoCardsPlayer.savePlayerInGame({
-        id_game: gameId,
-        id_player: player.id_player,
-        cardsPlayer: deckPerPlayer,
-      });
+        await this.repoCardsPlayer.savePlayerInGame({
+          id_game: gameId,
+          id_player: player.id,
+          cardsPlayer: deckPerPlayer,
+        });
 
-      playersAndCards.push(deckPerPlayer);
-    }
+        playersAndCards.push(deckPerPlayer);
+      })
+    );
 
     return Either.right({
       message: "Cards dealt successfully",
@@ -165,7 +167,7 @@ export class PlayCarService {
     const players = null;
     if (curretOrder.right.order === "clockwise") {
       players = await this.repoMacher.getPlayersAsc(idGame);
-    }else{
+    } else {
       players = await this.repoMacher.getPlayersDesc(idGame);
     }
 
@@ -258,14 +260,11 @@ export class PlayCarService {
 
     const monitor = this.unoMonitor(playerCards.right.cardsPlayer);
     let sayUno = false;
-    for (let values of monitor) {
+    [...monitor].forEach((values) => {
       if (values == "UNO") {
         sayUno = true;
-        break;
-      } else {
-        sayUno = false;
       }
-    }
+    });
 
     if (sayUno && playerCards.right.cardsPlayer.length === 1) {
       const nextPlayer = await this.getNextPlayer(idGame, idPlayerChallenger);

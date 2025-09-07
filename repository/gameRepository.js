@@ -25,12 +25,13 @@ export class GameRepository extends IGameRepository {
   }
 
   async updateAllGame(data, id) {
+    console.log(id);
     const gameInstance = await this.getById(id);
-    if (!gameInstance) {
+    if (gameInstance.isLeft()) {
       return Either.left({ message: "Game not found", statusCode: 404 });
     }
-    Object.assign(gameInstance, data);
-    const updatedGame = await gameInstance.save();
+    Object.assign(gameInstance.right, data);
+    const updatedGame = await gameInstance.right.save();
     return Either.right(updatedGame);
   }
 
@@ -44,10 +45,10 @@ export class GameRepository extends IGameRepository {
 
   async patchGame(data, id) {
     const gameInstance = await this.getById(id);
-    if (!gameInstance) {
+    if (gameInstance.isLeft()) {
       return Either.left({ message: "Game not found", statusCode: 404 });
     }
-    const updatedGame = await gameInstance.update(data);
+    const updatedGame = await gameInstance.right.update(data);
     return Either.right(updatedGame);
   }
 

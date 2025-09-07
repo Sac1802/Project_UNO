@@ -57,6 +57,7 @@ export class CardRepository extends ICardRepository {
     }
 
     async topCard(id) {
+        console.log("ID en repo:", id);
         const topCard = await card.findOne({
             where: {
                 gameId: id,

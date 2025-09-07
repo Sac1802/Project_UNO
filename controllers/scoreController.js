@@ -14,7 +14,7 @@ export async function saveScore(req, res, next) {
   const result = await scoreService.saveScore(data);
 
   if (result.isRight()) {
-    return res.status(201).json(result.value);
+    return res.status(201).json(result.right);
   } else {
     const err = result.getError();
     return res.status(err.statusCode || 500).json({ error: err.message });
@@ -25,7 +25,7 @@ export async function getAllScore(req, res, next) {
   const result = await scoreService.getAllScore();
 
   if (result.isRight()) {
-    return res.status(200).json(result.value);
+    return res.status(200).json(result.right);
   } else {
     const err = result.getError();
     return res.status(err.statusCode || 404).json({ error: err.message });
@@ -37,7 +37,7 @@ export async function getById(req, res, next) {
   const result = await scoreService.getById(id);
 
   if (result.isRight()) {
-    return res.status(200).json(result.value);
+    return res.status(200).json(result.right);
   } else {
     const err = result.getError();
     return res.status(err.statusCode || 404).json({ error: err.message });
@@ -55,7 +55,7 @@ export async function updateAllScore(req, res, next) {
   const result = await scoreService.updateAll(dataUpdated, id);
 
   if (result.isRight()) {
-    return res.status(200).json(result.value);
+    return res.status(200).json(result.right);
   } else {
     const err = result.getError();
     return res.status(err.statusCode || 500).json({ error: err.message });
@@ -81,7 +81,7 @@ export async function patchScore(req, res, next) {
   const result = await scoreService.patchScore(newData, id);
 
   if (result.isRight()) {
-    return res.status(200).json(result.value);
+    return res.status(200).json(result.right);
   } else {
     const err = result.getError();
     return res.status(err.statusCode || 500).json({ error: err.message });
@@ -97,7 +97,7 @@ export async function getScoreAllPlayer(req, res, next) {
   const result = await scoreService.scoreAllPlayers(idGame);
 
   if (result.isRight()) {
-    return res.status(200).json(result.value);
+    return res.status(200).json(result.right);
   } else {
     const err = result.getError();
     return res.status(err.statusCode || 404).json({ error: err.message });

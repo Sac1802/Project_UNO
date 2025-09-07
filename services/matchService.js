@@ -25,7 +25,8 @@ export class MatchService {
         status: "wait",
       });
       const playersInGame = await this.matchRepository.getPlayers(idGame);
-      const playerNames = playersInGame.right.map((p) => p.name);
+      console.log(playersInGame);
+      const playerNames = playersInGame.right.map((p) => p.player.username);
 
       const io = getIo();
       io.to(`game${idGame}`).emit('PlayerJoined', {
@@ -138,12 +139,12 @@ export class MatchService {
 
   async getPlayers(idGame) {
     const gameFound = await this.gameRepository.getById(idGame);
-    if (!gameFound)
-      return Either.left({ message: "Game not found" }, { statuscode: 404 });
+    if (gameFound.isLeft())
+      return Either.left({ message: "Game not found" }, { statusCode: 404 });
 
     const getPlayers = await this.matchRepository.getPlayers(idGame);
 
-    const playersList = getPlayers.map((p) => p.player.username);
+    const playersList = getPlayers.right.map((p) => p.player.username);
     return Either.right({
       game_id: idGame,
       players: playersList,

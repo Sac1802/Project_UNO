@@ -34,14 +34,14 @@ export class GameStatusService {
   }
   async getStatusGame(idGame) {
     const gameFind = await this.gameRepo.getById(idGame);
-    if (!gameFind)
+    if (gameFind.isLeft())
       return Either.left(`The game with ${idGame} not exists`, {
         statuscode: 404,
       });
-    return {
+    return Either.right({
       game_id: idGame,
-      state: gameFind.status,
-    };
+      state: gameFind.right.status,
+    });
   }
 
   async startGameWithTimeLimit(idGame, id_player, timeLimit) {

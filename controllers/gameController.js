@@ -37,8 +37,8 @@ export async function createGame(req, res, next) {
 export async function getAllGames(req, res, next) {
   const response = await gameGetService.getAllGames();
   if (response.isRight()) {
-    const gamesFindAll = response.value;
-    return res.status(200).json(gamesFindAll.value);
+    const gamesFindAll = response.right;
+    return res.status(200).json(gamesFindAll);
   } else {
     const err = response.getError();
     return res.status(err.statusCode || 500).json({ error: err.message });
@@ -49,7 +49,7 @@ export async function getById(req, res, next) {
   const id = req.params.id;
   const gameFindById = await gameGetService.getById(id);
   if (gameFindById.isRight()) {
-    return res.status(200).json(gameFindById.value);
+    return res.status(200).json(gameFindById.right);
   } else {
     const err = gameFindById.getError();
     return res.status(err.statusCode || 500).json({ error: err.message });
@@ -63,7 +63,7 @@ export async function updateAllGame(req, res, next) {
     return res.status(400).json({ message: "All fields must be completed" });
   const gameUpdated = await gameUpdateService.updateAllGame(dataNewGame, id);
   if (gameUpdated.isRight()) {
-    return res.status(200).json(gameUpdated.value);
+    return res.status(200).json(gameUpdated.right);
   } else {
     const err = gameUpdated.getError();
     return res.status(err.statusCode || 500).json({ error: err.message });
@@ -86,7 +86,7 @@ export async function patchGame(req, res, next) {
   const id = req.params.id;
   const updatedGames = await gameUpdateService.patchGame(newData, id);
   if (updatedGames.isRight()) {
-    return res.status(200).json(updatedGames.value);
+    return res.status(200).json(updatedGames.right);
   } else {
     const err = updatedGames.getError();
     return res.status(err.statusCode || 500).json({ error: err.message });
