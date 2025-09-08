@@ -1,6 +1,6 @@
 import sequelize from "../db/db.js";
 import { DataTypes } from "sequelize";
-import game from "./games.js";
+
 const OrderGame = sequelize.define(
   "order_game",
   {
@@ -26,6 +26,3 @@ const OrderGame = sequelize.define(
 );
 
 export default OrderGame;
-
-game.hasMany(OrderGame, {foreignKey:  'id_game'});
-OrderGame.belongsTo(game, {foreignKey: 'id_game'});

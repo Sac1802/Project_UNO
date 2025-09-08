@@ -70,18 +70,33 @@ npm test
 ## Project Structure
 
 ```
-/
-├── controllers/      # Controllers (route logic)
-├── db/               # Database configuration
-├── middlewares/      # Express middlewares
-├── models/           # Sequelize data models
-├── routes/           # API route definitions
-├── services/         # Business logic and services
-├── test/             # Tests (unit and integration)
-├── utils/            # Utility functions
-├── app.js            # Application entry point
-├── package.json      # Dependencies and scripts
-└── README.md         # This file
+.
+├── app.js
+├── babel.config.js
+├── controllers
+├── db
+├── img
+├── interfaces
+├── logs
+├── middlewares
+├── models
+├── plugins
+├── repository
+├── routes
+├── services
+│   └── gameServices
+├── test
+│   ├── Auth
+│   ├── controllers
+│   ├── db
+│   ├── E2E
+│   ├── repository
+│   ├── Services
+│   │   └── gameService
+│   └── utils
+├── utils
+└── valuesMemo.json
+
 ```
 
 ## Exam solution
@@ -152,3 +167,7 @@ The services (`GameCreationService`, `GameGetService`, `GameStatusService`, `Gam
 
 ### Using Monads
 The Monad pattern is used to handle errors in the application. In particular, the `Either` monad is used to encapsulate successful and failed outcomes. This pattern is useful because it allows errors to be propagated in a controlled manner through the call chain, which simplifies exception handling and improves code clarity.
+ ---
+ In the link below you will find the video explanation of the final Captone project, which explains how it was developed, as well as technologies, methodologies, unit tests and tests with Maven JMeter.
+
+[LINK VIDEO FINAL](https://drive.google.com/file/d/1kyS1-jKPecJ-EMwkSsSZwMayYN1o1_-G/view?usp=sharing)

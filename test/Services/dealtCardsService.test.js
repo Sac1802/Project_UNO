@@ -229,8 +229,6 @@ describe("PlayCarService", () => {
     });
   });
 
-  // --- Tests agregados para cobertura ---
-
   describe("validatePlay", () => {
     it("should return left if player is not found", async () => {
       repoPlayer.getByIdPlayer.mockResolvedValue(null);

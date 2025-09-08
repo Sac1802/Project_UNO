@@ -25,7 +25,6 @@ export class MatchService {
         status: "wait",
       });
       const playersInGame = await this.matchRepository.getPlayers(idGame);
-      console.log(playersInGame);
       const playerNames = playersInGame.right.map((p) => p.player.username);
 
       const io = getIo();

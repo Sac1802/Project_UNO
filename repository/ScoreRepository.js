@@ -1,10 +1,10 @@
-import score from "../models/score.js";
+import db from "../models/index.js";
 import { IScoreRepository } from "../interfaces/IScoreRepository.js";
 import Either from "../utils/Either.js";
 
 export class ScoreRepository extends IScoreRepository {
   async saveScore(data) {
-    const savedScore = await score.create(data);
+    const savedScore = await db.score.create(data);
     if (!savedScore) {
       return Either.left({
         message: `The score could not be created`,
@@ -15,7 +15,7 @@ export class ScoreRepository extends IScoreRepository {
   }
 
   async getAllScore(options = {}) {
-    const scores = await score.findAll(options);
+    const scores = await db.score.findAll(options);
     if (!scores || scores.length === 0) {
       return Either.left({
         message: `No scores found`,
@@ -26,7 +26,7 @@ export class ScoreRepository extends IScoreRepository {
   }
 
   async getById(id) {
-    const scoreInstance = await score.findByPk(id);
+    const scoreInstance = await db.score.findByPk(id);
     if (!scoreInstance) {
       return Either.left({
         message: `No score found with id ${id}`,
@@ -37,7 +37,7 @@ export class ScoreRepository extends IScoreRepository {
   }
 
   async updateAll(newData, id) {
-    const scoreInstance = await score.findByPk(id);
+    const scoreInstance = await db.score.findByPk(id);
     if (!scoreInstance) {
       return Either.left({
         message: `No score found with id ${id}`,
@@ -50,7 +50,7 @@ export class ScoreRepository extends IScoreRepository {
   }
 
   async deleteById(id) {
-    const deleted = await score.destroy({ where: { id } });
+    const deleted = await db.score.destroy({ where: { id } });
     if (!deleted) {
       return Either.left({
         message: `No score found with id ${id} to delete`,
@@ -61,7 +61,7 @@ export class ScoreRepository extends IScoreRepository {
   }
 
   async patchScore(newData, id) {
-    const scoreInstance = await score.findByPk(id);
+    const scoreInstance = await db.score.findByPk(id);
     if (!scoreInstance) {
       return Either.left({
         message: `No score found with id ${id}`,

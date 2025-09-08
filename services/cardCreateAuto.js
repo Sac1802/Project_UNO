@@ -1,4 +1,4 @@
-import card from "../models/cards.js";
+import db from "../models/index.js";
 
 export class CardCreateAuto {
   constructor(cardRepository) {
@@ -47,7 +47,7 @@ export class CardCreateAuto {
             gameId: id,
             isDiscarded: false,
           };
-          await card.create(cardWild);
+          await db.card.create(cardWild);
         }
       }
     } catch (error) {

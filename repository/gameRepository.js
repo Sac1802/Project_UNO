@@ -1,15 +1,15 @@
-import game from "../models/games.js";
-import gameFast from "../models/gameFast.js";
+import db from "../models/index.js";
 import { IGameRepository } from "../interfaces/IGameRepository.js";
 import Either from "../utils/Either.js";
 
 export class GameRepository extends IGameRepository {
   async createGame(data) {
-    return await game.create(data);
+    const newGame = await db.game.create(data);
+    return Either.right(newGame);
   }
 
   async getAllGames() {
-    const games = await game.findAll();
+    const games = await db.game.findAll();
     if (!games || games.length === 0) {
       return Either.left({ message: "No games found", statusCode: 500 });
     }
@@ -17,7 +17,7 @@ export class GameRepository extends IGameRepository {
   }
 
   async getById(id, options = {}) {
-    const gameInstance = await game.findByPk(id, options);
+    const gameInstance = await db.game.findByPk(id, options);
     if (!gameInstance) {
       return Either.left({ message: "Game not found", statusCode: 404 });
     }
@@ -25,10 +25,9 @@ export class GameRepository extends IGameRepository {
   }
 
   async updateAllGame(data, id) {
-    console.log(id);
     const gameInstance = await this.getById(id);
     if (gameInstance.isLeft()) {
-      return Either.left({ message: "Game not found", statusCode: 404 });
+      return gameInstance;
     }
     Object.assign(gameInstance.right, data);
     const updatedGame = await gameInstance.right.save();
@@ -36,7 +35,7 @@ export class GameRepository extends IGameRepository {
   }
 
   async deleteById(id) {
-    const deletedCount = await game.destroy({ where: { id } });
+    const deletedCount = await db.game.destroy({ where: { id } });
     if (deletedCount === 0) {
       return Either.left({ message: "Game not found", statusCode: 404 });
     }
@@ -46,14 +45,14 @@ export class GameRepository extends IGameRepository {
   async patchGame(data, id) {
     const gameInstance = await this.getById(id);
     if (gameInstance.isLeft()) {
-      return Either.left({ message: "Game not found", statusCode: 404 });
+      return gameInstance;
     }
     const updatedGame = await gameInstance.right.update(data);
     return Either.right(updatedGame);
   }
 
   async gameFast(data) {
-    const gameFastInstance = await gameFast.create(data);
+    const gameFastInstance = await db.gameFast.create(data);
     if (!gameFastInstance) {
       return Either.left({
         message: "Game fast creation failed",
@@ -63,60 +62,79 @@ export class GameRepository extends IGameRepository {
     return Either.right(gameFastInstance);
   }
 
-  async startGame(data, idGame) {
+  async startGame(dataEither, idGame) {
     const result = await this.getById(idGame);
 
     if (result.isLeft()) {
-      return Either.left({ message: "Game not found", statusCode: 404 });
+      return result;
     }
 
     const gameInstance = result.right;
 
-    gameInstance.status = data.right.status;
+    const status = dataEither.right?.status;
+    if (!status) {
+      return Either.left({ message: "Status is required", statusCode: 400 });
+    }
+
+    gameInstance.status = status;
     await gameInstance.save();
 
     return Either.right("Game started successfully");
   }
 
-  async endGame(data, idGame) {
+  async endGame(dataEither, idGame) {
     const result = await this.getById(idGame);
-
-    if (result.isLeft()) {
-      return Either.left({ message: "Game not found", statusCode: 404 });
+    if (result.isLeft()) return result;
+    const gameInstance = result.right;
+    const status = dataEither.right?.status;
+    if (!status) {
+      return Either.left({ message: "Status is required", statusCode: 400 });
     }
 
-    const gameInstance = result.right;
-
-    gameInstance.status = data.right.status;
+    gameInstance.status = status;
     await gameInstance.save();
     return Either.right("Game ended successfully");
   }
 
-  async getCurrentPlayer(idGame) {
-    const gameInstance = await this.getById(idGame);
-    if (!gameInstance) {
-      return Either.left({ message: "Game not found", statusCode: 404 });
+  async updateCurrentPlayer(idGame, playerId) {
+    if (!playerId) {
+      return Either.left({ message: "Player ID is required", statusCode: 400 });
     }
-    return Either.right(gameInstance.current_turn_player_id);
+
+    const gameInstance = await this.getById(idGame);
+    if (gameInstance.isLeft()) return gameInstance;
+
+    gameInstance.right.current_turn_player_id = playerId;
+    const updatedGame = await gameInstance.right.save();
+    return Either.right(updatedGame);
   }
 
   async startGameWithTimeLimit(data, idGame) {
     const gameInstance = await this.getById(idGame);
-    if (!gameInstance) {
-      return Either.left({ message: "Game not found", statusCode: 404 });
+    if (gameInstance.isLeft()) {
+      return gameInstance;
     }
-    Object.assign(gameInstance, data);
-    const updatedGame = await gameInstance.save();
+    Object.assign(gameInstance.right, data);
+    const updatedGame = await gameInstance.right.save();
     return Either.right(updatedGame);
   }
 
   async updateCurrentPlayer(idGame, playerId) {
     const gameInstance = await this.getById(idGame);
-    if (!gameInstance) {
-      return Either.left({ message: "Game not found", statusCode: 404 });
+    if (gameInstance.isLeft()) {
+      return gameInstance;
     }
-    gameInstance.current_turn_player_id = playerId;
-    const updatedGame = await gameInstance.save();
+    gameInstance.right.current_turn_player_id = playerId;
+    const updatedGame = await gameInstance.right.save();
     return Either.right(updatedGame);
+  }
+
+  async getCurrentPlayer(idGame) {
+    const gameInstance = await this.getById(idGame);
+    if (gameInstance.isLeft()) {
+      return gameInstance;
+    }
+    const currentPlayerId = gameInstance.right.current_turn_player_id;
+    return Either.right(currentPlayerId);
   }
 }

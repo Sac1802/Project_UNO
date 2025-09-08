@@ -1,15 +1,14 @@
 import { playerInGameRepository } from "../../repository/playerInGameRepository.js";
+import db from "../../models/index.js";
 import Either from "../../utils/Either.js";
 
-jest.mock("../../models/playerInGame.js", () => ({
+jest.mock("../../models/index.js", () => ({
   playerInGame: {
     create: jest.fn(),
     findOne: jest.fn(),
     findAll: jest.fn(),
   }
 }));
-
-import { playerInGame } from "../../models/playerInGame.js";
 
 describe("playerInGameRepository", () => {
   let repository;
@@ -22,11 +21,11 @@ describe("playerInGameRepository", () => {
   describe("savePlayerInGame", () => {
     test("should save player and return Right", async () => {
       const mockData = { id: 1, id_game: 10 };
-      playerInGame.create.mockResolvedValue(mockData);
+      db.playerInGame.create.mockResolvedValue(mockData);
 
       const result = await repository.savePlayerInGame(mockData);
 
-      expect(playerInGame.create).toHaveBeenCalledWith(mockData);
+      expect(db.playerInGame.create).toHaveBeenCalledWith(mockData);
       expect(result.isRight()).toBe(true);
       expect(result.right).toEqual(mockData);
     });
@@ -35,11 +34,11 @@ describe("playerInGameRepository", () => {
   describe("getCardsByIdPlayer", () => {
     test("should return Right when player found", async () => {
       const mockPlayer = { id: 1, id_game: 10, id_player: 5 };
-      playerInGame.findOne.mockResolvedValue(mockPlayer);
+      db.playerInGame.findOne.mockResolvedValue(mockPlayer);
 
       const result = await repository.getCardsByIdPlayer(10, 5);
 
-      expect(playerInGame.findOne).toHaveBeenCalledWith({
+      expect(db.playerInGame.findOne).toHaveBeenCalledWith({
         where: { id_game: 10, id_player: 5 },
       });
       expect(result.isRight()).toBe(true);
@@ -47,12 +46,12 @@ describe("playerInGameRepository", () => {
     });
 
     test("should return Left when player not found", async () => {
-      playerInGame.findOne.mockResolvedValue(null);
+      db.playerInGame.findOne.mockResolvedValue(null);
 
       const result = await repository.getCardsByIdPlayer(10, 99);
 
       expect(result.isLeft()).toBe(true);
-      expect(result.left).toBe("Error not found player or game");
+      expect(result.left).toEqual({ message: "Error not found player or game", statusCode: 404 });
     });
   });
 
@@ -62,11 +61,11 @@ describe("playerInGameRepository", () => {
         id: 1,
         update: jest.fn().mockResolvedValue(true),
       };
-      playerInGame.findOne.mockResolvedValue(mockPlayer);
+      db.playerInGame.findOne.mockResolvedValue(mockPlayer);
 
       const result = await repository.updateCardsByIdPlayer(10, 5, ["card1"]);
 
-      expect(playerInGame.findOne).toHaveBeenCalledWith({
+      expect(db.playerInGame.findOne).toHaveBeenCalledWith({
         where: { id_game: 10, id_player: 5 },
       });
       expect(mockPlayer.update).toHaveBeenCalledWith({ cardsPlayer: ["card1"] });
@@ -75,12 +74,12 @@ describe("playerInGameRepository", () => {
     });
 
     test("should return Left when player not found", async () => {
-      playerInGame.findOne.mockResolvedValue(null);
+      db.playerInGame.findOne.mockResolvedValue(null);
 
       const result = await repository.updateCardsByIdPlayer(10, 99, []);
 
       expect(result.isLeft()).toBe(true);
-      expect(result.left).toBe("Error not found player");
+      expect(result.left).toEqual({ message: "Error not found player", statusCode: 404 });
     });
   });
 
@@ -90,11 +89,11 @@ describe("playerInGameRepository", () => {
         cardsPlayer: [{ id: 1 }, { id: 2 }],
         update: jest.fn().mockResolvedValue(true),
       };
-      playerInGame.findOne.mockResolvedValue(mockPlayer);
+      db.playerInGame.findOne.mockResolvedValue(mockPlayer);
 
       const result = await repository.deleteACardByIdPlayer(10, 5, 1);
 
-      expect(playerInGame.findOne).toHaveBeenCalledWith({
+      expect(db.playerInGame.findOne).toHaveBeenCalledWith({
         where: { id_game: 10, id_player: 5 },
       });
       expect(mockPlayer.update).toHaveBeenCalledWith({
@@ -105,23 +104,23 @@ describe("playerInGameRepository", () => {
     });
 
     test("should return Left when player not found", async () => {
-      playerInGame.findOne.mockResolvedValue(null);
+      db.playerInGame.findOne.mockResolvedValue(null);
 
       const result = await repository.deleteACardByIdPlayer(10, 5, 1);
 
       expect(result.isLeft()).toBe(true);
-      expect(result.left).toBe("Player not found");
+      expect(result.left).toEqual({ message: "Player not found", statusCode: 404 });
     });
   });
 
   describe("getAllPlayersInGame", () => {
     test("should return Right when players exist", async () => {
       const mockPlayers = [{ id: 1 }, { id: 2 }];
-      playerInGame.findAll.mockResolvedValue(mockPlayers);
+      db.playerInGame.findAll.mockResolvedValue(mockPlayers);
 
       const result = await repository.getAllPlayersInGame(10);
 
-      expect(playerInGame.findAll).toHaveBeenCalledWith({
+      expect(db.playerInGame.findAll).toHaveBeenCalledWith({
         where: { id_game: 10 },
       });
       expect(result.isRight()).toBe(true);
@@ -129,12 +128,12 @@ describe("playerInGameRepository", () => {
     });
 
     test("should return Left when no players found", async () => {
-      playerInGame.findAll.mockResolvedValue([]);
+      db.playerInGame.findAll.mockResolvedValue([]);
 
       const result = await repository.getAllPlayersInGame(10);
 
       expect(result.isLeft()).toBe(true);
-      expect(result.left).toBe("No players in the game");
+      expect(result.left).toEqual({ message: "No players in the game", statusCode: 404 });
     });
   });
 });

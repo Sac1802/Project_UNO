@@ -2,15 +2,18 @@ import { GameCreationService } from "../services/gameServices/gameCreationServic
 import { GameStatusService } from "../services/gameServices/gameStatusService.js";
 import { GameGetService } from "../services/gameServices/gameGetService.js";
 import { GameUpdateService } from "../services/gameServices/gameUpdateService.js";
+import { MatchService } from "../services/matchService.js";
 import * as matchController from "./matchController.js";
 import { GameRepository } from "../repository/gameRepository.js";
 import { CardRepository } from "../repository/CardRepository.js";
 import { CardCreateAuto } from "../services/cardCreateAuto.js";
 import { OrderGameRepository } from "../repository/OrderGameRepoository.js";
+import { MatchRepository } from "../repository/matchRepository.js";
 
 const gameRepository = new GameRepository();
 const cardRepository = new CardRepository();
 const orderGameRepository = new OrderGameRepository();
+const matchRepository = new MatchRepository();
 const gameCreateService = new GameCreationService(gameRepository);
 const gameGetService = new GameGetService(gameRepository);
 const gameUpdateService = new GameUpdateService(gameRepository);
@@ -27,6 +30,11 @@ export async function createGame(req, res, next) {
     const gameCreated = response.right;
     await createCardAuto.saveCardsAuto(gameCreated.game_id);
     await orderGameRepository.saveOrderGame(gameCreated.game_id, "clockwise");
+    await matchRepository.saveUserMatch({
+      id_game: gameCreated.game_id,
+      id_player: user,
+      status: "wait",
+    });
     return res.status(201).json(gameCreated);
   } else {
     const err = response.getError();

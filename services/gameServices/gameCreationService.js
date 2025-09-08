@@ -12,7 +12,7 @@ export class GameCreationService {
     const createdGame = await this.gameRepo.createGame(dataGame);
     return Either.right({
       message: "Game created successfully",
-      game_id: createdGame.id,
+      game_id: createdGame.right.id,
     });
   }
 

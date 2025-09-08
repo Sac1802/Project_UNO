@@ -1,4 +1,4 @@
-import Either from "../utils/Either";
+import Either from "../utils/Either.js";
 
 export class RulesService {
   constructor(matchRepo, gameRepo, orderRepo, playerInGame, cardRepo) {
@@ -40,13 +40,14 @@ export class RulesService {
       return currentPlayer;
     }
 
-    const players = await this.matchRepo.listUser(idGame);
+    const players = await this.playerInGame.getAllPlayersInGame(idGame);
 
-    const filterPlayer = players.right.filter((player) =>
-      player.deckPerPlayer.cards.some((card) => card.id === cardId)
-    );
+    const filterPlayer = players.right.filter((player) => {
+      const cards = JSON.parse(player.cardsPlayer).cards;
+      return cards.some((card) => card.id === cardId);
+    });
     if (filterPlayer.length === 0) {
-      return Either.left({ message: "Not found player" });
+      return Either.left({ message: "The card is not in the player's deck" });
     }
 
     const playersInGame = await this.matchRepo.getPlayersId(idGame);
@@ -105,61 +106,5 @@ export class RulesService {
     };
 
     return Either.right(result);
-  }
-
-  async cardPlay(idGame, playerId) {
-    const currentCards = await this.playerInGame.getCardsByIdPlayer(
-      idGame,
-      playerId
-    );
-    if (currentCards.isLeft()) return currentCards;
-
-    const cards = await this.cardRepo.getCardByIdgame(idGame);
-    if (cards.isLeft()) return cards;
-
-    const cartTop = await this.cardRepo.topCard(idGame);
-    if (cartTop.isLeft()) return cartTop;
-
-    let newHands = [...currentCards.right];
-
-    for (const cardNotUsed of cards.right) {
-      newHands.push(cardNotUsed);
-
-      if (
-        cardNotUsed.color === cartTop.right.color ||
-        cardNotUsed.value === cartTop.right.value
-      ) {
-        const newHandsValues = [...currentCards.right, cardNotUsed];
-        await this.playerInGame.updateCardsByIdPlayer(
-          idGame,
-          playerId,
-          newHandsValues
-        );
-
-        const result = {
-          body: {
-            newHand: newHands.map((c) => `${c.color}_${c.value}`),
-            drawnCard: `${cardNotUsed.color}_${cardNotUsed.value}`,
-            playable: true,
-          },
-        };
-        return Either.right(result);
-      }
-    }
-
-    const playersInGame = await this.matchRepo.getPlayersId(idGame);
-    const indexPlayer = playersInGame.right.findIndex(
-      (player) => player.id === playerId
-    );
-    const nextIndex = (indexPlayer + 1) % playersInGame.right.length;
-
-    await this.gameRepo.updateCurrentPlayer(
-      idGame,
-      playersInGame.right[nextIndex].id
-    );
-
-    return Either.left(
-      `There is no playable card. Turn passes to: ${playersInGame.right[nextIndex].username}.`
-    );
   }
 }

@@ -31,7 +31,7 @@ export async function dealtCards(req, res, next) {
     if(respoonse.isRight()){
         return res.status(200).json(respoonse.right);
     }else{
-        const err = respoonse.getError();
+        const err = respoonse.left;
         return res.status(err.statusCode || 500).json({ error: err.message });
     }
 }
@@ -44,7 +44,7 @@ export async function playCard(req, res, next) {
     if (response.isRight()) {
         return res.status(200).json(response.right);
     } else {
-        const err = response.getError();
+        const err = response.left;
         return res.status(err.statusCode || 500).json({ error: err.message });
     }
 }
@@ -111,7 +111,7 @@ export async function getStatusGame(req, res, next) {
 export async function getPlayerCards(req, res, next) {
     const idPlayer = req.user.playerId;
     const idGame = req.body.idGame;
-    const response = await playCardService.getCardsPlayer(idPlayer, idGame);
+    const response = await playCardService.getCardsPlayer(idGame, idPlayer);
     if (response.isRight()) {
         return res.status(200).json(response.right);
     } else {

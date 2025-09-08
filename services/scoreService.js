@@ -1,4 +1,4 @@
-import player from "../models/player.js";
+import db from "../models/index.js";
 import Either from "../utils/Either.js";
 
 export class ScoreService {
@@ -120,7 +120,7 @@ export class ScoreService {
         gameId: idGame,
       },
       include: {
-        model: player,
+        model: db.player,
         attributes: ["username"],
       },
     });
