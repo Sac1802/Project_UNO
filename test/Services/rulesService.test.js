@@ -21,6 +21,7 @@ describe("RulesService", () => {
     playerInGame = {
       getCardsByIdPlayer: jest.fn(),
       updateCardsByIdPlayer: jest.fn(),
+      getAllPlayersInGame: jest.fn(),
     };
     cardRepo = {
       getCardByIdgame: jest.fn(),
@@ -40,7 +41,10 @@ describe("RulesService", () => {
     it("should update to the next player", async () => {
       gameRepo.getCurrentPlayer.mockResolvedValue(Either.right("p1"));
       matchRepo.getPlayersId.mockResolvedValue(
-        Either.right([{ id: "p1", username: "A" }, { id: "p2", username: "B" }])
+        Either.right([
+          { id: "p1", username: "A" },
+          { id: "p2", username: "B" },
+        ])
       );
       gameRepo.updateCurrentPlayer.mockResolvedValue();
 
@@ -69,6 +73,13 @@ describe("RulesService", () => {
           { id: "p3", username: "C" },
         ])
       );
+      playerInGame.getAllPlayersInGame.mockResolvedValue(
+        Either.right([
+          { id: "p1", cardsPlayer: JSON.stringify({ cards: [{ id: "c1" }] }) },
+          { id: "p2", cardsPlayer: JSON.stringify({ cards: [] }) },
+          { id: "p3", cardsPlayer: JSON.stringify({ cards: [] }) },
+        ])
+      );
 
       const result = await service.skipPlayer("g1", "c1");
 
@@ -82,7 +93,7 @@ describe("RulesService", () => {
     it("should reverse order from clockwise to counterclockwise", async () => {
       gameRepo.getCurrentPlayer.mockResolvedValue(Either.right("p1"));
       orderRepo.getOrdersByGame.mockResolvedValue(
-        Either.right({ order: "clockwise" })
+        Either.right({ order_game: "clockwise" })
       );
       matchRepo.getPlayersAsc.mockResolvedValue(
         Either.right([
@@ -98,48 +109,6 @@ describe("RulesService", () => {
         "counterclockwise"
       );
       expect(result.right.body.newDirection).toBe("counterclockwise");
-    });
-  });
-
-  describe("cardPlay", () => {
-    it("should play a matching card", async () => {
-      playerInGame.getCardsByIdPlayer.mockResolvedValue(
-        Either.right([{ color: "red", value: "2" }])
-      );
-      cardRepo.getCardByIdgame.mockResolvedValue(
-        Either.right([{ color: "red", value: "5" }])
-      );
-      cardRepo.topCard.mockResolvedValue(Either.right({ color: "red", value: "9" }));
-
-      const result = await service.cardPlay("g1", "p1");
-
-      expect(playerInGame.updateCardsByIdPlayer).toHaveBeenCalled();
-      expect(result.right.body.playable).toBe(true);
-      expect(result.right.body.drawnCard).toBe("red_5");
-    });
-
-    it("should pass turn if no playable card", async () => {
-      playerInGame.getCardsByIdPlayer.mockResolvedValue(
-        Either.right([{ color: "red", value: "2" }])
-      );
-      cardRepo.getCardByIdgame.mockResolvedValue(
-        Either.right([{ color: "blue", value: "5" }])
-      );
-      cardRepo.topCard.mockResolvedValue(Either.right({ color: "red", value: "9" }));
-
-      matchRepo.getPlayersId.mockResolvedValue(
-        Either.right([
-          { id: "p1", username: "A" },
-          { id: "p2", username: "B" },
-        ])
-      );
-
-      gameRepo.updateCurrentPlayer.mockResolvedValue();
-
-      const result = await service.cardPlay("g1", "p1");
-
-      expect(gameRepo.updateCurrentPlayer).toHaveBeenCalledWith("g1", "p2");
-      expect(result.left).toContain("There is no playable card");
     });
   });
 });

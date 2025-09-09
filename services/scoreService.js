@@ -1,4 +1,4 @@
-import player from "../models/player.js";
+import db from "../models/index.js";
 import Either from "../utils/Either.js";
 
 export class ScoreService {
@@ -120,7 +120,7 @@ export class ScoreService {
         gameId: idGame,
       },
       include: {
-        model: player,
+        model: db.player,
         attributes: ["username"],
       },
     });
@@ -132,7 +132,7 @@ export class ScoreService {
       });
     }
 
-    const scores = findScoreByGame.value;
+    const scores = findScoreByGame.right;
 
     if (!scores || scores.length === 0) {
       return Either.left({
@@ -142,8 +142,8 @@ export class ScoreService {
     }
 
     const scoreObject = {};
-    scorePlayers.forEach((p) => {
-      scoreObject[p.username] = p.score;
+    scores.forEach((p) => {
+      scoreObject[p.player.username] = p.score;
     });
 
     return Either.right({ scores: scoreObject });

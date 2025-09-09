@@ -83,7 +83,7 @@ describe('loginController', () => {
     });
 
     it('should call logout with undefined if token missing', async () => {
-      req.headers = {}; // no token
+      req.headers = {};
       mockLoginService.logoutUser.mockResolvedValue({ success: true });
 
       await loginController.logout(req, res, next);

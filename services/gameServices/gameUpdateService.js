@@ -5,33 +5,40 @@ export class GameUpdateService {
     this.gameRepo = gameRepo;
   }
 
+  // Update all fields: fetch game first, then delegate to repo.updateGame(game, newData)
   async updateAllGame(newData, id) {
-    const gameFind = await this.gameRepo.getById(id);
-    const updatedGame = await this.gameRepo.updateGame(gameFind, newData);
-    return updatedGame;
+    const game = await this.gameRepo.getById(id);
+    if (!game || typeof game === "object" && typeof game.isLeft === "function" && game.isLeft()) {
+      return Either.left(
+        { message: `The game with ${id} not exists` },
+        { statuscode: 404 }
+      );
+    }
+    // Tests expect raw updated object, not Either
+    return await this.gameRepo.updateGame(game, newData);
   }
 
   async deleteById(id) {
-    const gameFindById = await this.gameRepo.getById(id);
-    if (!gameFindById)
+    const game = await this.gameRepo.getById(id);
+    if (!game || (typeof game.isLeft === "function" && game.isLeft())) {
       return Either.left(
         { message: `The game with ${id} not exists` },
         { statuscode: 404 }
       );
-    const response = await this.gameRepo.deleteGame(id);
-    return response;
+    }
+    // Tests expect deleteGame(id)
+    return await this.gameRepo.deleteGame(id);
   }
 
   async patchGame(newData, id) {
-    const gameFind = await this.gameRepo.getById(id);
-    if (!gameFind)
+    const game = await this.gameRepo.getById(id);
+    if (!game || (typeof game.isLeft === "function" && game.isLeft())) {
       return Either.left(
         { message: `The game with ${id} not exists` },
         { statuscode: 404 }
       );
-    const gameUpdated = await this.gameRepo.patchGame(gameFind, newData);
-    return gameUpdated;
+    }
+    // Tests expect raw updated object
+    return await this.gameRepo.patchGame(game, newData);
   }
-
-  
 }

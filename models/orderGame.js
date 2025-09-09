@@ -1,6 +1,6 @@
 import sequelize from "../db/db.js";
 import { DataTypes } from "sequelize";
-import game from "./games.js";
+
 const OrderGame = sequelize.define(
   "order_game",
   {
@@ -9,7 +9,7 @@ const OrderGame = sequelize.define(
       autoIncrement: true,
       primaryKey: true,
     },
-    order: {
+    order_game: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -19,12 +19,10 @@ const OrderGame = sequelize.define(
     },
   },
   {
+    tableName: "order_game",
     timestamps: true,
     updatedAt: false,
   }
 );
 
 export default OrderGame;
-
-game.hasMany(OrderGame, {foreignKey:  'id_game'});
-OrderGame.belongsTo(game, {foreignKey: 'id_game'});

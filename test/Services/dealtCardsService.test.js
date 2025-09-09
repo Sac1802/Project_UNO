@@ -30,7 +30,6 @@ describe("PlayCarService", () => {
     );
   });
 
-  // --- Tests existentes ---
 
   describe("dealtCard", () => {
     it("returns Left if validation fails", async () => {
@@ -40,8 +39,8 @@ describe("PlayCarService", () => {
     });
 
     it("deals cards and returns Right", async () => {
-      const mockPlayers = [{ id_player: 10 }];
-      const mockPlayerData = { id_player: 10, name: "John" };
+      const mockPlayers = [{ id: 10 }];
+      const mockPlayerData = { id: 10, name: "John" };
       const cardsMap = new Map([[1, { id: 1, color: "red", value: "5" }],]);
       service.validateGameAndCards = jest.fn().mockResolvedValue(Either.right({ cardsMap }));
       repoMacher.getPlayers.mockResolvedValue(mockPlayers);
@@ -229,8 +228,6 @@ describe("PlayCarService", () => {
       expect(result.isLeft()).toBe(true);
     });
   });
-
-  // --- Tests agregados para cobertura ---
 
   describe("validatePlay", () => {
     it("should return left if player is not found", async () => {

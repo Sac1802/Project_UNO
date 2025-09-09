@@ -1,7 +1,5 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../db/db.js";
-import game from "./games.js";
-import player from "./player.js";
 
 const playerInGame = sequelize.define("players_in_game", {
   id: {
@@ -26,11 +24,5 @@ const playerInGame = sequelize.define("players_in_game", {
   tableName: "players_in_game",
   timestamps: false            
 });
-
-game.hasMany(playerInGame, { foreignKey: "id_game", onDelete: "CASCADE" });
-playerInGame.belongsTo(game, { foreignKey: "id_game" });
-
-player.hasMany(playerInGame, { foreignKey: "id_player", onDelete: "CASCADE" });
-playerInGame.belongsTo(player, { foreignKey: "id_player" });
 
 export default playerInGame;

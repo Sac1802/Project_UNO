@@ -24,13 +24,13 @@ export class GameGetService {
         required: false,
       },
     });
-    if (!gameData) {
+    if (gameData.isLeft()) {
       return Either.left({ message: "Game not found", statuscode: 404 });
     }
-    const username = gameData.currentPlayer?.username;
-    return {
+    const username = gameData.right.currentPlayer?.username;
+    return Either.right({
       game_id: idGame,
       current_player: username ? username : "Unknown",
-    };
+    });
   }
 }

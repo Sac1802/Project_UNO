@@ -36,7 +36,7 @@ export class CardsService {
 
   async patchCard(newData, id) {
     const findByIdCard = await this.cardRepo.getByIdCard(id);
-    if (!findByIdCard.isRight()) return findByIdCard; // Return the left result from repository
+    if (!findByIdCard.isRight()) return findByIdCard;
     const cardUpdated = await this.cardRepo.patchCard(newData, id);
     return cardUpdated;
   }
@@ -46,7 +46,7 @@ export class CardsService {
     if (!topCardResult.isRight()) {
       return topCardResult;
     }
-    const topCard = topCardResult.value;
+    const topCard = topCardResult.right;
     return Either.right({
       game_id: id,
       top_card: `${topCard.value} of ${topCard.color}`,

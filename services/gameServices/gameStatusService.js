@@ -8,11 +8,12 @@ export class GameStatusService {
 
   async startGame(idGame, id_player) {
     const gameFind = await this.gameRepo.getById(idGame);
-    if (!gameFind) throw new Error(`The game with ${idGame} not exists`);
-    if (gameFind.game_owner === id_player) {
-      gameFind.status = "in_progress";
+    if (gameFind.isLeft()) throw new Error(`The game with ${idGame} not exists`);
+    if (gameFind.right.game_owner === id_player) {
+      
+      gameFind.right.status = "in_progress";
       const startgame = await this.gameRepo.startGame(gameFind, idGame);
-      return startgame;
+      return Either.right(startgame.right);
     } else {
       return Either.left({
         message: "Only the owner of the game can start the game",
@@ -23,24 +24,24 @@ export class GameStatusService {
 
   async endGame(idGame, id_player) {
     const gameFind = await this.gameRepo.getById(idGame);
-    if (!gameFind)
+    if (gameFind.isLeft())
       return Either.left(`The game with ${idGame} not exists`, {
         statuscode: 404,
       });
-    gameFind.status = "finalized";
+    gameFind.right.status = "finalized";
     const response = await this.gameRepo.endGame(gameFind, idGame);
     return response;
   }
   async getStatusGame(idGame) {
     const gameFind = await this.gameRepo.getById(idGame);
-    if (!gameFind)
+    if (gameFind.isLeft())
       return Either.left(`The game with ${idGame} not exists`, {
         statuscode: 404,
       });
-    return {
+    return Either.right({
       game_id: idGame,
-      state: gameFind.status,
-    };
+      state: gameFind.right.status,
+    });
   }
 
   async startGameWithTimeLimit(idGame, id_player, timeLimit) {

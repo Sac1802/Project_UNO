@@ -7,6 +7,8 @@ import scroreRouter from "./routes/scoreRoutes.js";
 import loginRouter from "./routes/loginRoutes.js";
 import matchRouter from "./routes/matchRoutes.js";
 import trackingRouter from "./routes/trackingRoutes.js";
+import dealtRouter from "./routes/dealtCardsRoutes.js";
+import rulesRouter from "./routes/rulesRooutes.js";
 import { eitherLogger } from "./middlewares/middleware.js";
 import { verifyToken } from "./middlewares/verifyToken.js";
 import { initSocket } from "./utils/socket.js";
@@ -45,7 +47,8 @@ app.use("/api/scores", scroreRouter);
 app.use("/api/auth", loginRouter);
 app.use("/api/match", matchRouter);
 app.use("/api/stats", trackingRouter);
-
+app.use("/api/dealt", dealtRouter);
+app.use('/api/rules', rulesRouter);
 app.use(eitherLogger);
 
 app.listen(port, () => {

@@ -1,10 +1,10 @@
-import player from "../models/player.js";
+import db from "../models/index.js";
 import { IPlayerRepository } from "../interfaces/IPlayerRepository.js";
 import Either from "../utils/Either.js";
 
 export class PlayerRepository extends IPlayerRepository {
   async savePlayer(data) {
-    const savedPlayer = await player.create(data);
+    const savedPlayer = await db.player.create(data);
     if (!savedPlayer) {
       return Either.left({
         message: `The player could not be created`,
@@ -15,7 +15,7 @@ export class PlayerRepository extends IPlayerRepository {
   }
 
   async getPlayers() {
-    const players = await player.findAll();
+    const players = await db.player.findAll();
     if (!players || players.length === 0) {
       return Either.left({
         message: `No players found`,
@@ -26,7 +26,7 @@ export class PlayerRepository extends IPlayerRepository {
   }
 
   async getByIdPlayer(id) {
-    const playerInstance = await player.findByPk(id);
+    const playerInstance = await db.player.findByPk(id);
     if (!playerInstance) {
       return Either.left({
         message: `No player found with id ${id}`,
@@ -37,7 +37,7 @@ export class PlayerRepository extends IPlayerRepository {
   }
 
   async updateFullPlayer(id, data) {
-    const playerInstance = await player.findByPk(id);
+    const playerInstance = await db.player.findByPk(id);
     if (!playerInstance) {
       return Either.left({
         message: `No player found with id ${id}`,
@@ -50,7 +50,7 @@ export class PlayerRepository extends IPlayerRepository {
   }
 
   async deletePlayer(id) {
-    const deleted = await player.destroy({ where: { id } });
+    const deleted = await db.player.destroy({ where: { id } });
     if (!deleted) {
       return Either.left({
         message: `No player found with id ${id} to delete`,
@@ -61,7 +61,7 @@ export class PlayerRepository extends IPlayerRepository {
   }
 
   async patchPlayer(newData, id) {
-    const playerInstance = await player.findByPk(id);
+    const playerInstance = await db.player.findByPk(id);
     if (!playerInstance) {
       return Either.left({
         message: `No player found with id ${id}`,
@@ -73,7 +73,7 @@ export class PlayerRepository extends IPlayerRepository {
   }
 
   async findOne(username) {
-    const foundPlayer = await player.findOne({ where: { username } });
+    const foundPlayer = await db.player.findOne({ where: { username } });
     if (!foundPlayer) {
       return Either.left({
         message: `No player found with username ${username}`,

@@ -1,6 +1,5 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../db/db.js";
-import player from "./player.js";
 
 const usageTracking = sequelize.define("usageTracking", {
     id: {
@@ -33,11 +32,9 @@ const usageTracking = sequelize.define("usageTracking", {
         allowNull:false
     }
 }, {
+    tableName:"usageTracking",
     timestamps: true,
     updatedAt: false 
 });
-
-player.hasMany(usageTracking, {foreignKey: "userId"});
-usageTracking.belongsTo(player, {foreignKey: "userId"});
 
 export default usageTracking;

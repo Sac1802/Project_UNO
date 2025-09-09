@@ -1,6 +1,5 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../db/db.js";
-import player from "./player.js";
 
 const gameFast = sequelize.define('gameFast', {
     id: {
@@ -38,11 +37,5 @@ const gameFast = sequelize.define('gameFast', {
     timestamps: true,
     updatedAt: false 
 });
-
-player.hasMany(gameFast, {foreignKey: 'game_owner'});
-gameFast.belongsTo(player, {foreignKey: 'game_owner'});
-
-player.hasMany(gameFast, { foreignKey: 'current_turn_player_id', as: 'turnGamesFast' });
-gameFast.belongsTo(player, { foreignKey: 'current_turn_player_id', as: 'currentPlayerFast' });
 
 export default gameFast;

@@ -55,7 +55,7 @@ export class PlayerService {
       });
     }
 
-    const playerData = playerById.value;
+    const playerData = playerById.right;
     return Either.right({
       id: playerData.id,
       username: playerData.username,

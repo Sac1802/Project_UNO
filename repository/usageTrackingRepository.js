@@ -1,10 +1,14 @@
 import { IUsageTracking } from "../interfaces/IUsageTracking.js";
-import UsageTracking from "../models/usageTracking.js";
+import db from "../models/index.js";
 import Either from "../utils/Either.js";
 
 export class UsageTrackingRepository extends IUsageTracking {
+  get model() {
+    return db.UsageTracking || db.usageTracking;
+  }
+
   async createUsageTracking(usageTracking) {
-    const newUsageTracking = await UsageTracking.create(usageTracking);
+    const newUsageTracking = await this.model.create(usageTracking);
     if (!newUsageTracking) {
       return Either.left({
         message: "Failed to create Usage Tracking",
@@ -15,7 +19,7 @@ export class UsageTrackingRepository extends IUsageTracking {
   }
 
   async getAllUsages() {
-    const usages = await UsageTracking.findAll();
+    const usages = await this.model.findAll();
     if (usages.length === 0) {
       return Either.left({
         message: "No Usages Found",
@@ -26,7 +30,7 @@ export class UsageTrackingRepository extends IUsageTracking {
   }
 
   async getById(idUsages) {
-    const usage = await UsageTracking.findByPk(idUsages);
+    const usage = await this.model.findByPk(idUsages);
     if (!usage) {
       return Either.left({
         message: `The Usage with ${idUsages} not found`,
@@ -37,7 +41,7 @@ export class UsageTrackingRepository extends IUsageTracking {
   }
 
   async updateUsageTracking(usageTracking, method, request, idUser) {
-    const updatedUsageTracking = await UsageTracking.findOne({
+    const updatedUsageTracking = await this.model.findOne({
       where: {
         userId: idUser,
         endpointAccess: request,
@@ -46,7 +50,7 @@ export class UsageTrackingRepository extends IUsageTracking {
     });
     if (!updatedUsageTracking) {
       return Either.left({
-        message: `The Usage with ${idUsages} not found`,
+        message: `The Usage with ${idUser} not found`,
         statusCode: 404,
       });
     }
@@ -57,7 +61,7 @@ export class UsageTrackingRepository extends IUsageTracking {
   }
 
   async getByRequest(request, method, userId) {
-    const usages = await UsageTracking.findOne({
+    const usages = await this.model.findOne({
       where: {
         endpointAccess: request,
         requestMethod: method,

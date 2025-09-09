@@ -1,11 +1,10 @@
-import match from "../models/match.js";
-import player from "../models/player.js";
+import db from "../models/index.js";
 import { IMatchRepository } from "../interfaces/IMatchRepository.js";
 import Either from "../utils/Either.js";
 
 export class MatchRepository extends IMatchRepository {
   async saveUserMatch(data) {
-    const savedUser = await match.create(data);
+    const savedUser = await db.match.create(data);
     if (!savedUser) {
       return Either.left({
         message: `The match could not be created`,
@@ -16,7 +15,7 @@ export class MatchRepository extends IMatchRepository {
   }
 
   async changeStatus(newData, idGame, idPlayer) {
-    const updatedMatch = await match.update(newData, {
+    const updatedMatch = await db.match.update(newData, {
       where: {
         id_game: idGame,
         id_player: idPlayer,
@@ -32,7 +31,7 @@ export class MatchRepository extends IMatchRepository {
   }
 
   async changeStatusAllPlayers(newData, idGame) {
-    const updatedMatches = await match.update(newData, {
+    const updatedMatches = await db.match.update(newData, {
       where: {
         id_game: idGame,
       },
@@ -47,10 +46,10 @@ export class MatchRepository extends IMatchRepository {
   }
 
   async getPlayers(idGame) {
-    const players = await match.findAll({
+    const players = await db.match.findAll({
       where: { id_game: idGame },
       include: {
-        model: player,
+        model: db.player,
         attributes: ["username"],
       },
     });
@@ -64,11 +63,11 @@ export class MatchRepository extends IMatchRepository {
   }
 
   async getPlayersAsc(idGame) {
-    const players = await match.findAll({
+    const players = await db.match.findAll({
       where: { id_game: idGame },
-      order: [["turn", "ASC"]],
+      order: [["id", "ASC"]],
       include: {
-        model: player,
+        model: db.player,
         attributes: ["username"],
       },
     });
@@ -82,11 +81,11 @@ export class MatchRepository extends IMatchRepository {
   }
 
   async getPlayersDesc(idGame) {
-    const players = await match.findAll({
+    const players = await db.match.findAll({
       where: { id_game: idGame },
       order: [["turn", "DESC"]],
       include: {
-        model: player,
+        model: db.player,
         attributes: ["username"],
       },
     });
@@ -100,10 +99,10 @@ export class MatchRepository extends IMatchRepository {
   }
 
   async getPlayersId(idGame) {
-    const players = await match.findAll({
+    const players = await db.match.findAll({
       where: { id_game: idGame },
       include: {
-        model: player,
+        model: db.player,
         attributes: ["id", "username"],
       },
     });
@@ -117,7 +116,7 @@ export class MatchRepository extends IMatchRepository {
   }
 
   async findOne(idGame, idPlayer) {
-    const playerMatch = await match.findOne({
+    const playerMatch = await db.match.findOne({
       where: {
         id_game: idGame,
         id_player: idPlayer,
@@ -133,7 +132,7 @@ export class MatchRepository extends IMatchRepository {
   }
 
   async count(idGame) {
-    const count = await match.count({
+    const count = await db.match.count({
       where: {
         id_game: idGame,
       },
@@ -148,7 +147,7 @@ export class MatchRepository extends IMatchRepository {
   }
 
   async listUser(idGame) {
-    const playerMatches = await match.findAll({
+    const playerMatches = await db.match.findAll({
       where: {
         id_game: idGame,
       },

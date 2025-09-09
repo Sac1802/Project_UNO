@@ -1,19 +1,19 @@
 import { ITurnHistory } from "../interfaces/ITurnHistory.js";
-import { TurnHistory } from "../models/turnHistory.js";
+import db from "../models/index.js";
 import Either from "../utils/Either.js";
 
 export class TurnHistoryRepository extends ITurnHistory {
-  async saveHistoryTurn(action, gameId, playerId) {
-    const newTurnHistory = await TurnHistory.create({
-      gameId,
-      playerId,
+  async saveHistoryTurn(action, game_id, player_id) {
+    const newTurnHistory = await db.turnHistory.create({
+      game_id,
+      player_id,
       action,
     });
     return Either.right(newTurnHistory);
   }
 
-  async getHistoryTurnsByGameId(gameId) {
-    const historyTurns = await TurnHistory.findAll({ where: { gameId } });
+  async getHistoryTurnsByGameId(game_id) {
+    const historyTurns = await db.turnHistory.findAll({ where: { game_id } });
     if (historyTurns.length === 0) {
       return Either.left("Not found history turns.");
     }

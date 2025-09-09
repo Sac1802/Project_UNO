@@ -33,7 +33,7 @@ export async function getPlayers(req, res, next) {
   const result = await playerService.getPlayers();
 
   if (result.isRight()) {
-    return res.status(200).json(result.value);
+    return res.status(200).json(result.right);
   } else {
     const err = result.getError();
     return res.status(err.statusCode || 500).json({ error: err.message });
@@ -45,7 +45,7 @@ export async function getByIdPlayer(req, res, next) {
   const result = await playerService.getByIdPlayer(id);
 
   if (result.isRight()) {
-    return res.status(200).json(result.value);
+    return res.status(200).json(result.right);
   } else {
     const err = result.getError();
     return res.status(err.statusCode || 404).json({ error: err.message });
@@ -63,7 +63,7 @@ export async function updateFullPlayer(req, res, next) {
   const result = await playerService.updateFullPlayer(dataUpdate, id);
 
   if (result.isRight()) {
-    return res.status(200).json(result.value);
+    return res.status(200).json(result.right);
   } else {
     const err = result.getError();
     return res.status(err.statusCode || 500).json({ error: err.message });
@@ -89,7 +89,7 @@ export async function patchPlayer(req, res, next) {
   const result = await playerService.patchPlayer(dataPlayerUpdate, id);
 
   if (result.isRight()) {
-    return res.status(200).json(result.value);
+    return res.status(200).json(result.right);
   } else {
     const err = result.getError();
     return res.status(err.statusCode || 500).json({ error: err.message });
@@ -105,7 +105,7 @@ export async function getPlayerByToken(req, res, next) {
   const result = await playerService.getByIdByToken(idPlayer);
 
   if (result.isRight()) {
-    return res.status(200).json(result.value);
+    return res.status(200).json(result.right);
   } else {
     const err = result.getError();
     return res.status(err.statusCode || 404).json({ error: err.message });

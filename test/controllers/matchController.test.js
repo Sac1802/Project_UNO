@@ -1,6 +1,5 @@
 import Either from "../../utils/Either.js";
 
-// Mock the service constructor
 const mockService = {
   saveUserMatch: jest.fn(),
   changeStatus: jest.fn(),
@@ -47,7 +46,6 @@ describe("MatchController", () => {
     };
     next = jest.fn();
     
-    // Get the mock service instance
     mockService = new MatchService();
     
     jest.clearAllMocks();
@@ -74,7 +72,7 @@ describe("MatchController", () => {
 
       expect(mockService.saveUserMatch).toHaveBeenCalledWith("100", 1);
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(undefined); // Controller uses result.value which is undefined
+      expect(res.json).toHaveBeenCalledWith(undefined);
       expect(next).not.toHaveBeenCalled();
     });
 
@@ -113,7 +111,7 @@ describe("MatchController", () => {
 
       expect(mockService.changeStatus).toHaveBeenCalledWith("101", 2);
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(undefined); // Controller uses result.value which is undefined
+      expect(res.json).toHaveBeenCalledWith(undefined);
       expect(next).not.toHaveBeenCalled();
     });
 
@@ -183,7 +181,7 @@ describe("MatchController", () => {
 
       expect(mockService.abandonmentGame).toHaveBeenCalledWith("555", 3);
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(undefined); // Controller uses result.value which is undefined
+      expect(res.json).toHaveBeenCalledWith(undefined);
       expect(next).not.toHaveBeenCalled();
     });
 
@@ -251,7 +249,7 @@ describe("MatchController", () => {
 
       expect(mockService.getPlayers).toHaveBeenCalledWith("321");
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(undefined); // Controller uses result.value which is undefined
+      expect(res.json).toHaveBeenCalledWith(undefined); 
       expect(next).not.toHaveBeenCalled();
     });
 

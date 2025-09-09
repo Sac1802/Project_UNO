@@ -1,4 +1,4 @@
-import Either from "../utils/Either";
+import Either from "../utils/Either.js";
 
 export class PlayCarService {
   constructor(
@@ -20,38 +20,39 @@ export class PlayCarService {
   }
 
   async dealtCard(gameId, maxCardsPerPlayer) {
+    
     const playersAndCards = [];
     const validation = await this.validateGameAndCards(gameId);
     if (validation.isLeft()) return validation;
 
     const cardsMap = validation.right.cardsMap;
     const players = await this.repoMacher.getPlayers(gameId);
+    await Promise.all(
+      players.right.map(async (player) => {
+        const playerData = await this.repoPlayer.getByIdPlayer(player.id_player);
+        let deckPlayers = [];
 
-    for (const player of players) {
-      const playerData = await this.repoPlayer.getByIdPlayer(player.id_player);
-      let deckPlayers = [];
+        const result = await this.createDeckPerPlayer(
+          cardsMap,
+          maxCardsPerPlayer,
+          playerData.name,
+          deckPlayers
+        );
 
-      const result = await this.createDeckPerPlayer(
-        cardsMap,
-        maxCardsPerPlayer,
-        playerData.name,
-        deckPlayers
-      );
+        const deckPerPlayer = {
+          player: result.player,
+          cards: result.cards,
+        };
 
-      const deckPerPlayer = {
-        player: result.player,
-        cards: result.cards,
-      };
-
-      await this.repoCardsPlayer.savePlayerInGame({
-        id_game: gameId,
-        id_player: player.id_player,
-        cardsPlayer: deckPerPlayer,
-      });
-
-      playersAndCards.push(deckPerPlayer);
-    }
-
+        const resultPlayer = await this.repoCardsPlayer.savePlayerInGame({
+          id_game: gameId,
+          id_player: player.id_player,
+          cardsPlayer: deckPerPlayer,
+        });
+        playersAndCards.push(deckPerPlayer);
+      })
+    );
+  
     return Either.right({
       message: "Cards dealt successfully",
       player: playersAndCards,
@@ -71,8 +72,8 @@ export class PlayCarService {
 
   async validateGameAndCards(gameId) {
     const findGame = await this.repoGame.getById(gameId);
-    if (!findGame) return Either.left("game not found");
-    if (findGame.status != "in_progress") {
+    if (findGame.isLeft()) return Either.left("game not found");
+    if (findGame.right.status != "in_progress") {
       return Either.left("game is not in progress");
     } else {
       const cardsEither = await this.repoCards.getCardByIdgame(gameId);
@@ -92,10 +93,10 @@ export class PlayCarService {
 
   async validateGame(gameId) {
     const findGame = await this.repoGame.getById(gameId);
-    if (!findGame) {
+    if (findGame.isLeft()) {
       return Either.left("game not found");
     }
-    if (findGame.status != "in_progress")
+    if (findGame.right.status != "in_progress")
       return Either.left("game is not in progress");
     return Either.right(findGame);
   }
@@ -146,17 +147,17 @@ export class PlayCarService {
 
     const findCard = await this.repoCards.getByIdCard(cardId);
     if (!findCard) return Either.left("card not found");
-
     const topCard = await this.repoCards.topCard(gameId);
     if (
       topCard.right.color !== findCard.color &&
       topCard.right.value !== findCard.value
     ) {
-      return Either.left(
-        "Invalid card. Please play a card that matches the top card on the discard pile."
-      );
+      return Either.left({
+        message:
+          "Invalid card. Please play a card that matches the top card on the discard pile.",
+        statusCode: 400,
+      });
     }
-
     return Either.right(findCard);
   }
 
@@ -165,7 +166,7 @@ export class PlayCarService {
     const players = null;
     if (curretOrder.right.order === "clockwise") {
       players = await this.repoMacher.getPlayersAsc(idGame);
-    }else{
+    } else {
       players = await this.repoMacher.getPlayersDesc(idGame);
     }
 
@@ -182,27 +183,50 @@ export class PlayCarService {
     const card = cardArray[cardIndex];
 
     await this.repoCards.updateDiscardCard(card.id);
+
     await this.saveNewTurn(gameId, "draw", idPlayer, card);
+
+    
 
     const deckPlayersEither = await this.repoCardsPlayer.getCardsByIdPlayer(
       gameId,
       idPlayer
     );
+    console.log(deckPlayersEither);
     if (deckPlayersEither.isLeft()) return deckPlayersEither;
 
-    const deckPlayers = deckPlayersEither.right.cardsPlayer;
-    deckPlayers.push(card);
+    const cardPlain = {
+      id: card.id,
+      color: card.color,
+      value: card.value,
+      gameId: card.gameId,
+      isDiscarded: card.isDiscarded,
+      createdAt: card.createdAt,
+    };
 
-    await this.repoCardsPlayer.updateCardsByIdPlayer(
-      gameId,
-      idPlayer,
-      deckPlayers
-    );
+    const rawCards = deckPlayersEither.right.cardsPlayer;
+
+    let deckPlayersObj;
+    if (!rawCards) {
+      deckPlayersObj = { cards: [] };
+    } else if (typeof rawCards === "string") {
+      deckPlayersObj = JSON.parse(rawCards);
+    } else {
+      deckPlayersObj = rawCards;
+    }
+
+    const deckPlayersArray = deckPlayersObj.cards || [];
+
+    deckPlayersArray.push(cardPlain);
+
+    await this.repoCardsPlayer.updateCardsByIdPlayer(gameId, idPlayer, {
+      cards: deckPlayersArray,
+    });
 
     const player = await this.repoPlayer.getByIdPlayer(idPlayer);
 
     return Either.right({
-      message: `${player.name} drew a card from the deck`,
+      message: `${player.right.username} drew a card from the deck`,
       cardDrawn: { color: card.color, value: card.value },
     });
   }
@@ -221,15 +245,15 @@ export class PlayCarService {
       idPlayer
     );
     if (mallet.isLeft()) return mallet;
-
+    const player = await this.repoPlayer.getByIdPlayer(idPlayer);
     if (mallet.right.cardsPlayer.length === 1) {
       return Either.right(
-        `Player ${validatePlayerInGame.name} said UNO successfully.`
+        `Player ${player.right.username} said UNO successfully.`
       );
     }
 
     return Either.left(
-      `Player ${validatePlayerInGame.name} does not have exactly one card.`
+      {message: `Player ${player.right.username} does not have exactly one card.`, statusCode: 400}
     );
   }
 
@@ -258,14 +282,11 @@ export class PlayCarService {
 
     const monitor = this.unoMonitor(playerCards.right.cardsPlayer);
     let sayUno = false;
-    for (let values of monitor) {
+    [...monitor].forEach((values) => {
       if (values == "UNO") {
         sayUno = true;
-        break;
-      } else {
-        sayUno = false;
       }
-    }
+    });
 
     if (sayUno && playerCards.right.cardsPlayer.length === 1) {
       const nextPlayer = await this.getNextPlayer(idGame, idPlayerChallenger);
@@ -338,9 +359,12 @@ export class PlayCarService {
 
     const player = await this.repoPlayer.getByIdPlayer(idPlayer);
 
+    const cardsObj = JSON.parse(playerCards.right.cardsPlayer);
+    const cardsArray = cardsObj.cards || [];
+
     const handsValue = {
       player: player.name,
-      hand: playerCards.right.cardsPlayer.map((c) => `${c.color} ${c.value}`),
+      hand: cardsArray.map((c) => `${c.color} ${c.value}`),
     };
 
     return Either.right({ handsValue });

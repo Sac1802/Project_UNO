@@ -1,15 +1,23 @@
 import { CardRepository } from '../../repository/CardRepository.js';
-import card from '../../models/cards.js';
+import db from '../../models/index.js';
 import Either from '../../utils/Either.js';
 
-jest.mock('../../models/cards.js');
+jest.mock('../../models/index.js', () => ({
+    card: {
+        create: jest.fn(),
+        findAll: jest.fn(),
+        findByPk: jest.fn(),
+        destroy: jest.fn(),
+    }
+}));
 
 describe('CardRepository', () => {
   let repository;
   let mockCard;
 
-  // Test data constants
-  const MOCK_CARD_DATA = { name: 'Test Card', value: 10 };
+  const MOCK_CARD_DATA = 
+  
+  { name: 'Test Card', value: 10 };
   const MOCK_CARD_ID = 1;
   const MOCK_CARDS_LIST = [
     { id: 1, name: 'Card 1', value: 5 },
@@ -28,98 +36,88 @@ describe('CardRepository', () => {
   });
 
   describe('createCard', () => {
-    it('should successfully create a new card and return Right Either', async () => {
-      // Arrange
+    it('should successfully create a new card', async () => {
       const expectedCard = { id: MOCK_CARD_ID, ...MOCK_CARD_DATA };
-      card.create.mockResolvedValue(expectedCard);
+      db.card.create.mockResolvedValue(expectedCard);
 
-      // Act
       const result = await repository.createCard(MOCK_CARD_DATA);
 
-      // Assert
-      expect(card.create).toHaveBeenCalledWith(MOCK_CARD_DATA);
-      expect(result.isRight()).toBe(true);
-      expect(result.right).toEqual(expectedCard);
+      expect(db.card.create).toHaveBeenCalledWith(MOCK_CARD_DATA);
+      expect(result).toEqual(new Right(expectedCard));
     });
   });
 
   describe('getAllCards', () => {
-    it('should successfully retrieve all cards and return Right Either', async () => {
-      card.findAll.mockResolvedValue(MOCK_CARDS_LIST);
+    it('should successfully retrieve all cards', async () => {
+      db.card.findAll.mockResolvedValue(MOCK_CARDS_LIST);
 
       const result = await repository.getAllCards();
 
-      expect(card.findAll).toHaveBeenCalledWith();
-      expect(result.isRight()).toBe(true);
-      expect(result.right).toEqual(MOCK_CARDS_LIST);
+      expect(db.card.findAll).toHaveBeenCalledWith();
+      expect(result).toEqual(new Right(MOCK_CARDS_LIST));
     });
   });
 
   describe('getByIdCard', () => {
-    it('should successfully retrieve a card by id and return Right Either', async () => {
+    it('should successfully retrieve a card by id', async () => {
       const options = { include: [] };
-      card.findByPk.mockResolvedValue(mockCard);
+      db.card.findByPk.mockResolvedValue(mockCard);
 
       const result = await repository.getByIdCard(MOCK_CARD_ID, options);
 
-      expect(card.findByPk).toHaveBeenCalledWith(MOCK_CARD_ID, options);
-      expect(result.isRight()).toBe(true);
-      expect(result.right).toEqual(mockCard);
+      expect(db.card.findByPk).toHaveBeenCalledWith(MOCK_CARD_ID, options);
+      expect(result).toEqual(new Right(mockCard));
     });
 
     it('should use empty options object when no options provided', async () => {
-    
-      card.findByPk.mockResolvedValue(mockCard);
-
+      db.card.findByPk.mockResolvedValue(mockCard);
 
       const result = await repository.getByIdCard(MOCK_CARD_ID);
 
-      expect(card.findByPk).toHaveBeenCalledWith(MOCK_CARD_ID, {});
-      expect(result.isRight()).toBe(true);
+      expect(db.card.findByPk).toHaveBeenCalledWith(MOCK_CARD_ID, {});
+      expect(result).toEqual(new Right(mockCard));
     });
   });
 
   describe('updateAll', () => {
-    it('should successfully update a card and return Right Either', async () => {
+    it('should successfully update a card', async () => {
       const updateData = { name: 'Updated Name', value: 20 };
-      card.findByPk.mockResolvedValue(mockCard);
+      db.card.findByPk.mockResolvedValue(mockCard);
       mockCard.save.mockResolvedValue(mockCard);
 
       const result = await repository.updateAll(updateData, MOCK_CARD_ID);
 
-      expect(card.findByPk).toHaveBeenCalledWith(MOCK_CARD_ID);
+      expect(db.card.findByPk).toHaveBeenCalledWith(MOCK_CARD_ID);
       expect(mockCard.name).toBe(updateData.name);
       expect(mockCard.value).toBe(updateData.value);
       expect(mockCard.save).toHaveBeenCalledWith();
-      expect(result.isRight()).toBe(true);
-      expect(result.right).toEqual(mockCard);
+      expect(result).toEqual(new Right(mockCard));
     });
   });
 
   describe('deleteById', () => {
-    it('should successfully delete a card by id and return Right Either', async () => {
-      card.findByPk.mockResolvedValue(mockCard);
-      card.destroy.mockResolvedValue(1);
+    it('should successfully delete a card by id', async () => {
+      db.card.findByPk.mockResolvedValue(mockCard);
+      db.card.destroy.mockResolvedValue(1);
       const result = await repository.deleteById(MOCK_CARD_ID);
 
-      expect(card.findByPk).toHaveBeenCalledWith(MOCK_CARD_ID);
-      expect(card.destroy).toHaveBeenCalledWith({ where: { id: MOCK_CARD_ID } });
-      expect(result.isRight()).toBe(true);
+      expect(db.card.findByPk).toHaveBeenCalledWith(MOCK_CARD_ID);
+      expect(db.card.destroy).toHaveBeenCalledWith({ where: { id: MOCK_CARD_ID } });
+      expect(result).toEqual(new Right(undefined));
     });
   });
 
   describe('patchCard', () => {
-    it('should successfully patch a card and return Right Either', async () => {
+    it('should successfully patch a card', async () => {
       const patchData = { name: 'Patched Name' };
-      card.findByPk.mockResolvedValue(mockCard);
+      db.card.findByPk.mockResolvedValue(mockCard);
       mockCard.save.mockResolvedValue(mockCard);
 
       const result = await repository.patchCard(patchData, MOCK_CARD_ID);
-      expect(card.findByPk).toHaveBeenCalledWith(MOCK_CARD_ID);
+      expect(db.card.findByPk).toHaveBeenCalledWith(MOCK_CARD_ID);
       expect(mockCard.name).toBe(patchData.name);
       expect(mockCard.save).toHaveBeenCalledWith();
-      expect(result.isRight()).toBe(true);
-      expect(result.right).toEqual(mockCard);
+      expect(result).toEqual(new Right(mockCard));
     });
   });
 });

@@ -1,4 +1,3 @@
-import player from "../models/player.js";
 import bcrypt from "../utils/bcrypt.js";
 import Either from "../utils/Either.js";
 import { generateToken } from "../utils/generateToken.js";

@@ -1,11 +1,9 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../db/db.js";
-import player from "./player.js";
-import game from "./games.js";
 
 const turnHistory = sequelize.define(
   "turnHistory",
-  ({
+  {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -25,14 +23,9 @@ const turnHistory = sequelize.define(
     },
   },
   {
+    tableName: "turnHistory",
     timestamps: true,
-  })
+  }
 );
-
-game.hasMany(turnHistory, {foreignKey:  'game_id'});
-turnHistory.belongsTo(game, {foreignKey: 'game_id'});
-
-player.hasMany(turnHistory, {foreignKey: 'player_id'});
-turnHistory.belongsTo(player, {foreignKey: 'player_id'});
 
 export default turnHistory;

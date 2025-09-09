@@ -1,6 +1,5 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../db/db.js";
-import player from "./player.js";
 
 const game = sequelize.define('game', {
     id: {
@@ -37,11 +36,5 @@ const game = sequelize.define('game', {
     timestamps: true,
     updatedAt: false 
 });
-
-player.hasMany(game, {foreignKey: 'game_owner'});
-game.belongsTo(player, {foreignKey: 'game_owner'});
-
-player.hasMany(game, { foreignKey: 'current_turn_player_id', as: 'turnGames' });
-game.belongsTo(player, { foreignKey: 'current_turn_player_id', as: 'currentPlayer' });
 
 export default game;
